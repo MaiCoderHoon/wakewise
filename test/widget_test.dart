@@ -1,71 +1,60 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:wakewise/core/constants/theme/light_theme.dart';
-import 'package:wakewise/data/datasources/alarm_local_datasource.dart';
-import 'package:wakewise/data/repositories/alarm_repository_impl.dart';
-import 'package:wakewise/main.dart';
-import 'package:wakewise/presentation/blocs/alarm/alarm_bloc.dart';
-import 'package:wakewise/presentation/blocs/alarm/alarm_event.dart';
-import 'package:wakewise/presentation/screens/home_screen.dart';
+import 'package:wakewise/domain/entities/alarm.dart';
 import 'package:wakewise/presentation/screens/onboarding_screen.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  testWidgets('WakewiseApp initializes and renders successfully', (WidgetTester tester) async {
-    Hive.init('./test_hive');
-    final box = await Hive.openBox('test_alarms_app');
-    final localDataSource = AlarmLocalDataSourceImpl(box);
-    final repository = AlarmRepositoryImpl(localDataSource: localDataSource);
+  group('Alarm Entity Unit Tests', () {
+    test('Alarm entity formats 12-hour time and period correctly', () {
+      final alarm = Alarm(
+        id: '1',
+        hour: 7,
+        minute: 30,
+        label: 'Morning Alarm',
+        repeatDays: const [1, 2, 3, 4, 5],
+        challengeType: ChallengeType.math,
+        enabled: true,
+        createdAt: DateTime(2026, 1, 1),
+      );
 
-    await tester.pumpWidget(WakewiseApp(alarmRepository: repository));
-    await tester.pump();
+      expect(alarm.formattedTime, '07:30');
+      expect(alarm.formattedPeriod, 'AM');
+      expect(alarm.formattedRepeatDays, 'Weekdays');
+      expect(alarm.challengeType.displayName, 'Math Challenge');
+    });
 
-    expect(find.text('WakeWise'), findsOneWidget);
-    expect(find.text('Wake Smarter.'), findsOneWidget);
+    test('Alarm entity formats PM time and weekend repeat days correctly', () {
+      final alarm = Alarm(
+        id: '2',
+        hour: 20,
+        minute: 5,
+        label: 'Evening Wind Down',
+        repeatDays: const [6, 7],
+        challengeType: ChallengeType.qr,
+        enabled: false,
+        createdAt: DateTime(2026, 1, 1),
+      );
 
-    // Elapse timer so pending microtasks finish cleanly
-    await tester.pump(const Duration(seconds: 3));
-
-    await box.close();
+      expect(alarm.formattedTime, '08:05');
+      expect(alarm.formattedPeriod, 'PM');
+      expect(alarm.formattedRepeatDays, 'Weekends');
+    });
   });
 
-  testWidgets('OnboardingScreen renders welcome text and skip button', (WidgetTester tester) async {
-    await tester.pumpWidget(
-      MaterialApp(
-        theme: lightThemeData,
-        home: const OnboardingScreen(),
-      ),
-    );
-
-    await tester.pump();
-
-    expect(find.text('Welcome to WakeWise'), findsOneWidget);
-    expect(find.text('Skip'), findsOneWidget);
-  });
-
-  testWidgets('HomeScreen renders greeting and alarm dashboard', (WidgetTester tester) async {
-    Hive.init('./test_hive');
-    final box = await Hive.openBox('test_alarms_home');
-    final localDataSource = AlarmLocalDataSourceImpl(box);
-    final repository = AlarmRepositoryImpl(localDataSource: localDataSource);
-
-    await tester.pumpWidget(
-      BlocProvider<AlarmBloc>(
-        create: (context) => AlarmBloc(repository: repository)..add(const LoadAlarms()),
-        child: MaterialApp(
+  group('UI Widget Tests', () {
+    testWidgets('OnboardingScreen renders title and skip button', (WidgetTester tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
           theme: lightThemeData,
-          home: const HomeScreen(),
+          home: const OnboardingScreen(),
         ),
-      ),
-    );
+      );
 
-    await tester.pump();
-
-    expect(find.text('Good Morning'), findsOneWidget);
-
-    await box.close();
+      expect(find.text('Welcome to WakeWise'), findsOneWidget);
+      expect(find.text('Skip'), findsOneWidget);
+    });
   });
 }

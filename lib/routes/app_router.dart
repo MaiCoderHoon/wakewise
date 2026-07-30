@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../domain/challenges/entities/challenge_difficulty.dart';
 import '../domain/entities/alarm.dart';
 import '../presentation/screens/add_edit_alarm_screen.dart';
+import '../presentation/screens/challenge/challenge_play_screen.dart';
+import '../presentation/screens/challenge/challenge_selection_screen.dart';
 import '../presentation/screens/home_screen.dart';
 import '../presentation/screens/onboarding_screen.dart';
 import '../presentation/screens/splash_screen.dart';
@@ -68,6 +71,43 @@ final GoRouter appRouter = GoRouter(
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
             return SlideTransition(
               position: Tween<Offset>(begin: const Offset(0, 1), end: Offset.zero).animate(animation),
+              child: child,
+            );
+          },
+        );
+      },
+    ),
+    GoRoute(
+      path: '/challenge-selection',
+      name: 'challenge-selection',
+      pageBuilder: (context, state) => CustomTransitionPage(
+        key: state.pageKey,
+        child: const ChallengeSelectionScreen(),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          return SlideTransition(
+            position: Tween<Offset>(begin: const Offset(0, 1), end: Offset.zero).animate(animation),
+            child: child,
+          );
+        },
+      ),
+    ),
+    GoRoute(
+      path: '/challenge-play',
+      name: 'challenge-play',
+      pageBuilder: (context, state) {
+        final Map<String, dynamic> extraMap = (state.extra as Map<String, dynamic>?) ?? {};
+        final challengeKey = extraMap['challengeKey'] as String? ?? 'math';
+        final difficulty = extraMap['difficulty'] as ChallengeDifficulty? ?? ChallengeDifficulty.medium;
+
+        return CustomTransitionPage(
+          key: state.pageKey,
+          child: ChallengePlayScreen(
+            challengeKey: challengeKey,
+            difficulty: difficulty,
+          ),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            return SlideTransition(
+              position: Tween<Offset>(begin: const Offset(1, 0), end: Offset.zero).animate(animation),
               child: child,
             );
           },

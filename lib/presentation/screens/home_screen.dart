@@ -136,6 +136,11 @@ class HomeScreen extends StatelessWidget {
             },
           ),
 
+          // Today's Mission Card
+          const _TodaysMissionCard(),
+
+          AppSpacing.gapH24,
+
           // Morning Streak Card
           const _MorningStreakCard(),
 
@@ -536,6 +541,54 @@ class _WeatherCard extends StatelessWidget {
                 ),
               ],
             ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Today's Mission Card
+class _TodaysMissionCard extends StatelessWidget {
+  const _TodaysMissionCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return AppCard(
+      child: Row(
+        children: [
+          Container(
+            padding: AppSpacing.paddingAllMd,
+            decoration: BoxDecoration(
+              color: AppColors.primaryLight.withValues(alpha: 0.3),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.task_alt_rounded, color: AppColors.primaryDark, size: 28),
+          ),
+          AppSpacing.gapW16,
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "Today's Mission",
+                  style: AppTypography.titleLarge,
+                ),
+                AppSpacing.gapH4,
+                Text(
+                  'Math Challenge • 3 Equations',
+                  style: AppTypography.bodySmall,
+                ),
+              ],
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () => context.push('/challenge-selection'),
+            style: ElevatedButton.styleFrom(
+              minimumSize: const Size(80, 38),
+              padding: const EdgeInsets.symmetric(horizontal: 14),
+            ),
+            child: const Text('Test'),
           ),
         ],
       ),
