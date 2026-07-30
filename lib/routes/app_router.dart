@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import '../domain/challenges/entities/challenge_difficulty.dart';
 import '../domain/entities/alarm.dart';
 import '../presentation/screens/add_edit_alarm_screen.dart';
+import '../presentation/screens/alarm_ring_screen.dart';
 import '../presentation/screens/challenge/challenge_play_screen.dart';
 import '../presentation/screens/challenge/challenge_selection_screen.dart';
 import '../presentation/screens/home_screen.dart';
@@ -110,6 +111,31 @@ final GoRouter appRouter = GoRouter(
               position: Tween<Offset>(begin: const Offset(1, 0), end: Offset.zero).animate(animation),
               child: child,
             );
+          },
+        );
+      },
+    ),
+    GoRoute(
+      path: '/alarm-ring',
+      name: 'alarm-ring',
+      pageBuilder: (context, state) {
+        final alarm = (state.extra as Alarm?) ??
+            Alarm(
+              id: 'demo',
+              hour: 7,
+              minute: 0,
+              label: 'Morning Workout Alarm',
+              repeatDays: const [1, 2, 3, 4, 5],
+              challengeType: ChallengeType.math,
+              enabled: true,
+              createdAt: DateTime.now(),
+            );
+
+        return CustomTransitionPage(
+          key: state.pageKey,
+          child: AlarmRingScreen(alarm: alarm),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            return FadeTransition(opacity: animation, child: child);
           },
         );
       },

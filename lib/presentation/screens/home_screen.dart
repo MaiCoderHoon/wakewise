@@ -9,6 +9,8 @@ import '../../domain/entities/alarm.dart';
 import '../blocs/alarm/alarm_bloc.dart';
 import '../blocs/alarm/alarm_event.dart';
 import '../blocs/alarm/alarm_state.dart';
+import '../blocs/stats/stats_bloc.dart';
+import '../blocs/stats/stats_state.dart';
 import '../widgets/app_card.dart';
 import '../widgets/app_page_scaffold.dart';
 import '../widgets/app_primary_button.dart';
@@ -389,60 +391,74 @@ class _EmptyAlarmsState extends StatelessWidget {
   }
 }
 
-/// Morning Streak Card
+/// Morning Streak & XP Card
 class _MorningStreakCard extends StatelessWidget {
   const _MorningStreakCard();
 
   @override
   Widget build(BuildContext context) {
-    return AppCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return BlocBuilder<StatsBloc, StatsState>(
+      builder: (context, state) {
+        int streak = 7;
+        int xp = 350;
+        int level = 4;
+
+        if (state is StatsLoaded) {
+          streak = state.stats.currentStreak > 0 ? state.stats.currentStreak : 1;
+          xp = state.stats.totalXp;
+          level = state.stats.level;
+        }
+
+        return AppCard(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Icon(Icons.local_fire_department_rounded, color: AppColors.secondary, size: 24),
-                  AppSpacing.gapW8,
-                  Text(
-                    'Morning Streak',
-                    style: AppTypography.titleLarge,
+                  Row(
+                    children: [
+                      const Icon(Icons.local_fire_department_rounded, color: AppColors.secondary, size: 24),
+                      AppSpacing.gapW8,
+                      Text(
+                        'Morning Streak (Lvl $level)',
+                        style: AppTypography.titleLarge,
+                      ),
+                    ],
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: AppColors.secondary.withValues(alpha: 0.15),
+                      borderRadius: AppSpacing.borderRadiusFull,
+                    ),
+                    child: Text(
+                      '$streak DAYS 🔥 • $xp XP',
+                      style: AppTypography.labelSmall.copyWith(
+                        color: AppColors.secondaryDark,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
                 ],
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: AppColors.secondary.withValues(alpha: 0.15),
-                  borderRadius: AppSpacing.borderRadiusFull,
-                ),
-                child: Text(
-                  '7 DAYS 🔥',
-                  style: AppTypography.labelSmall.copyWith(
-                    color: AppColors.secondaryDark,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+              AppSpacing.gapH16,
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: const [
+                  _DayProgressCircle(day: 'Mon', completed: true),
+                  _DayProgressCircle(day: 'Tue', completed: true),
+                  _DayProgressCircle(day: 'Wed', completed: true, isToday: true),
+                  _DayProgressCircle(day: 'Thu', completed: false),
+                  _DayProgressCircle(day: 'Fri', completed: false),
+                  _DayProgressCircle(day: 'Sat', completed: false),
+                  _DayProgressCircle(day: 'Sun', completed: false),
+                ],
               ),
             ],
           ),
-          AppSpacing.gapH16,
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: const [
-              _DayProgressCircle(day: 'Mon', completed: true),
-              _DayProgressCircle(day: 'Tue', completed: true),
-              _DayProgressCircle(day: 'Wed', completed: true, isToday: true),
-              _DayProgressCircle(day: 'Thu', completed: false),
-              _DayProgressCircle(day: 'Fri', completed: false),
-              _DayProgressCircle(day: 'Sat', completed: false),
-              _DayProgressCircle(day: 'Sun', completed: false),
-            ],
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
