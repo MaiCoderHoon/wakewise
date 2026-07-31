@@ -4,9 +4,12 @@ import '../domain/challenges/entities/challenge_difficulty.dart';
 import '../domain/entities/alarm.dart';
 import '../presentation/screens/add_edit_alarm_screen.dart';
 import '../presentation/screens/alarm_ring_screen.dart';
+import '../presentation/screens/analytics/analytics_screen.dart';
 import '../presentation/screens/challenge/challenge_play_screen.dart';
 import '../presentation/screens/challenge/challenge_selection_screen.dart';
+import '../presentation/screens/gamification/achievements_screen.dart';
 import '../presentation/screens/home_screen.dart';
+import '../presentation/screens/morning_summary_screen.dart';
 import '../presentation/screens/onboarding_screen.dart';
 import '../presentation/screens/splash_screen.dart';
 
@@ -139,6 +142,45 @@ final GoRouter appRouter = GoRouter(
           },
         );
       },
+    ),
+    GoRoute(
+      path: '/analytics',
+      name: 'analytics',
+      pageBuilder: (context, state) => CustomTransitionPage(
+        key: state.pageKey,
+        child: const AnalyticsScreen(),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          return SlideTransition(
+            position: Tween<Offset>(begin: const Offset(0, 1), end: Offset.zero).animate(animation),
+            child: child,
+          );
+        },
+      ),
+    ),
+    GoRoute(
+      path: '/achievements',
+      name: 'achievements',
+      pageBuilder: (context, state) => CustomTransitionPage(
+        key: state.pageKey,
+        child: const AchievementsScreen(),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          return SlideTransition(
+            position: Tween<Offset>(begin: const Offset(0, 1), end: Offset.zero).animate(animation),
+            child: child,
+          );
+        },
+      ),
+    ),
+    GoRoute(
+      path: '/morning-summary',
+      name: 'morning-summary',
+      pageBuilder: (context, state) => CustomTransitionPage(
+        key: state.pageKey,
+        child: const MorningSummaryScreen(),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          return FadeTransition(opacity: animation, child: child);
+        },
+      ),
     ),
   ],
 );

@@ -9,6 +9,8 @@ import '../../core/constants/theme/app_typography.dart';
 import '../../domain/challenges/entities/challenge_difficulty.dart';
 import '../../domain/entities/alarm.dart';
 import '../../domain/entities/alarm_history.dart';
+import '../blocs/gamification/gamification_bloc.dart';
+import '../blocs/gamification/gamification_event.dart';
 import '../blocs/stats/stats_bloc.dart';
 import '../blocs/stats/stats_event.dart';
 
@@ -76,7 +78,6 @@ class _AlarmRingScreenState extends State<AlarmRingScreen> with SingleTickerProv
       final endTime = DateTime.now();
       final duration = endTime.difference(startTime).inSeconds;
 
-      // Record WakeUp entry in StatsBloc
       final historyEntry = AlarmHistory(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
         alarmId: widget.alarm.id,
@@ -88,12 +89,9 @@ class _AlarmRingScreenState extends State<AlarmRingScreen> with SingleTickerProv
       );
 
       context.read<StatsBloc>().add(RecordWakeUp(historyEntry));
+      context.read<GamificationBloc>().add(EvaluateGamificationOnWake(historyEntry));
 
-      if (context.canPop()) {
-        context.pop();
-      } else {
-        context.go('/home');
-      }
+      context.go('/morning-summary');
     }
   }
 

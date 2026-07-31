@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/constants/theme/app_colors.dart';
-import '../../core/constants/theme/app_shadows.dart';
 import '../../core/constants/theme/app_spacing.dart';
 import '../../core/constants/theme/app_typography.dart';
 import '../../domain/entities/alarm.dart';
@@ -55,18 +54,20 @@ class HomeScreen extends StatelessWidget {
                   ),
                 ],
               ),
-              // Profile / Avatar Chip
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: AppColors.primaryGradient,
-                  boxShadow: AppShadows.soft,
-                ),
-                child: const Center(
-                  child: Icon(Icons.person_rounded, color: AppColors.textOnPrimary, size: 26),
-                ),
+              // Action Buttons (Analytics & Badges)
+              Row(
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.insights_rounded, color: AppColors.secondary, size: 26),
+                    tooltip: 'Analytics',
+                    onPressed: () => context.push('/analytics'),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.emoji_events_rounded, color: AppColors.primaryDark, size: 26),
+                    tooltip: 'Achievements',
+                    onPressed: () => context.push('/achievements'),
+                  ),
+                ],
               ),
             ],
           ),
