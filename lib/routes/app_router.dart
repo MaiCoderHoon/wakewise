@@ -10,6 +10,7 @@ import '../presentation/screens/challenge/challenge_selection_screen.dart';
 import '../presentation/screens/gamification/achievements_screen.dart';
 import '../presentation/screens/home_screen.dart';
 import '../presentation/screens/morning_summary_screen.dart';
+import '../presentation/screens/mission/mission_screen.dart';
 import '../presentation/screens/onboarding_screen.dart';
 import '../presentation/screens/splash_screen.dart';
 
@@ -181,6 +182,23 @@ final GoRouter appRouter = GoRouter(
           return FadeTransition(opacity: animation, child: child);
         },
       ),
+    ),
+    GoRoute(
+      path: '/morning-quest',
+      name: 'morning-quest',
+      pageBuilder: (context, state) {
+        final difficulty = (state.extra as ChallengeDifficulty?) ?? ChallengeDifficulty.medium;
+        return CustomTransitionPage(
+          key: state.pageKey,
+          child: MissionScreen(difficulty: difficulty),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            return SlideTransition(
+              position: Tween<Offset>(begin: const Offset(1, 0), end: Offset.zero).animate(animation),
+              child: child,
+            );
+          },
+        );
+      },
     ),
   ],
 );

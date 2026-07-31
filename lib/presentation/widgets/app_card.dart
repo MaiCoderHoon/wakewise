@@ -47,7 +47,51 @@ class AppCard extends StatelessWidget {
       onTap: onTap,
       gradient: AppColors.cardAccentGradient,
       border: Border.all(color: AppColors.primaryLight.withValues(alpha: 0.6), width: 1.5),
+      boxShadow: AppShadows.card,
+      borderRadius: borderRadius,
+      child: child,
+    );
+  }
+
+  /// Frosted glass card for hero sections overlaying a gradient background
+  factory AppCard.glass({
+    Key? key,
+    required Widget child,
+    EdgeInsetsGeometry padding = AppSpacing.paddingAllLg,
+    EdgeInsetsGeometry? margin,
+    VoidCallback? onTap,
+    double borderRadius = AppSpacing.radiusLg,
+    Color glassColor = const Color(0x26FFFFFF),
+  }) {
+    return AppCard(
+      key: key,
+      padding: padding,
+      margin: margin,
+      onTap: onTap,
+      backgroundColor: glassColor,
+      border: Border.all(color: const Color(0x33FFFFFF), width: 1.0),
       boxShadow: AppShadows.medium,
+      borderRadius: borderRadius,
+      child: child,
+    );
+  }
+
+  /// Solid gradient card using the primary gradient (e.g., Morning Quest banner)
+  factory AppCard.primary({
+    Key? key,
+    required Widget child,
+    EdgeInsetsGeometry padding = AppSpacing.paddingAllLg,
+    EdgeInsetsGeometry? margin,
+    VoidCallback? onTap,
+    double borderRadius = AppSpacing.radiusLg,
+  }) {
+    return AppCard(
+      key: key,
+      padding: padding,
+      margin: margin,
+      onTap: onTap,
+      gradient: AppColors.primaryGradient,
+      boxShadow: AppShadows.buttonGlow,
       borderRadius: borderRadius,
       child: child,
     );

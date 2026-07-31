@@ -1,0 +1,680 @@
+import 'dart:async';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+import '../../../../core/constants/theme/app_animations.dart';
+
+import '../../../../core/constants/theme/app_colors.dart';
+import '../../../../core/constants/theme/app_spacing.dart';
+import '../../../../core/constants/theme/app_typography.dart';
+import '../../../../domain/challenges/entities/challenge_difficulty.dart';
+import '../../../../domain/challenges/entities/math_challenge.dart';
+import '../../../../domain/challenges/entities/memory_challenge.dart';
+import '../../../../domain/challenges/entities/shake_challenge.dart';
+import '../../blocs/mission/mission_bloc.dart';
+import '../../blocs/mission/mission_event.dart';
+import '../../blocs/mission/mission_state.dart';
+import '../../widgets/app_card.dart';
+import '../../widgets/app_page_scaffold.dart';
+import '../../widgets/app_primary_button.dart';
+import 'widgets/mission_celebration_view.dart';
+import 'widgets/mission_progress_header.dart';
+import 'widgets/upcoming_tasks_list.dart';
+
+class MissionScreen extends StatefulWidget {
+  final ChallengeDifficulty difficulty;
+
+  const MissionScreen({
+    super.key,
+    this.difficulty = ChallengeDifficulty.medium,
+  });
+
+  @override
+  State<MissionScreen> createState() => _MissionScreenState();
+}
+
+class _MissionScreenState extends State<MissionScreen> {
+  late MissionBloc _missionBloc;
+
+  @override
+  void initState() {
+    super.initState();
+    _missionBloc = MissionBloc();
+    _missionBloc.add(StartMorningMission(difficulty: widget.difficulty));
+  }
+
+  @override
+  void dispose() {
+    _missionBloc.close();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocProvider.value(
+      value: _missionBloc,
+      child: AppPageScaffold(
+        isScrollable: false,
+        appBar: AppBar(
+          title: const Text('🌅 Morning Quest'),
+          leading: IconButton(
+            icon: const Icon(Icons.close_rounded),
+            onPressed: () => context.pop(),
+          ),
+        ),
+        body: BlocConsumer<MissionBloc, MissionState>(
+          listener: (context, state) {
+            if (state is MissionTaskSuccess) {
+              HapticFeedback.heavyImpact();
+              _showSuccessBanner(context, state.message);
+            }
+          },
+          builder: (context, state) {
+            if (state is MissionCelebrationState) {
+              return MissionCelebrationView(
+                totalXpEarned: state.totalXpEarned,
+                newStreak: state.newStreak,
+                newLevel: state.newLevel,
+                levelProgress: state.levelProgress,
+              );
+            }
+
+            if (state is MissionInProgress || state is MissionTaskSuccess) {
+              final mission = (state is MissionInProgress)
+                  ? state.mission
+                  : (state as MissionTaskSuccess).mission;
+              final feedbackMessage = (state is MissionInProgress) ? state.feedbackMessage : null;
+              final currentTask = mission.currentTask;
+
+              if (currentTask == null) return const SizedBox.shrink();
+
+              return Column(
+                children: [
+                  MissionProgressHeader(mission: mission),
+                  AppSpacing.gapH12,
+                  UpcomingTasksList(mission: mission),
+                  AppSpacing.gapH16,
+                  Expanded(
+                    child: AnimatedSwitcher(
+                      duration: AppAnimations.standard,
+                      transitionBuilder: (child, animation) {
+                        final curved = CurvedAnimation(
+                          parent: animation,
+                          curve: AppAnimations.enterCurve,
+                        );
+                        return FadeTransition(
+                          opacity: curved,
+                          child: ScaleTransition(
+                            scale: Tween<double>(begin: 0.94, end: 1.0).animate(curved),
+                            child: child,
+                          ),
+                        );
+                      },
+                      child: KeyedSubtree(
+                        key: ValueKey(currentTask.id),
+                        child: _buildTaskView(context, currentTask.challenge, feedbackMessage),
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            }
+
+            return const Center(
+              child: CircularProgressIndicator(color: AppColors.secondary),
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  /// Shows a transient success banner overlay at the top of the screen
+  void _showSuccessBanner(BuildContext context, String message) {
+    final overlay = Overlay.of(context);
+    late OverlayEntry entry;
+    entry = OverlayEntry(
+      builder: (_) => _SuccessBannerOverlay(
+        message: message,
+        onDismissed: () => entry.remove(),
+      ),
+    );
+    overlay.insert(entry);
+  }
+
+  Widget _buildTaskView(BuildContext context, dynamic challenge, String? feedbackMessage) {
+    if (challenge is MathChallenge) {
+      return _MathMissionTaskView(
+        challenge: challenge,
+        feedbackMessage: feedbackMessage,
+      );
+    } else if (challenge is MemoryChallenge) {
+      return _MemoryMissionTaskView(
+        challenge: challenge,
+        feedbackMessage: feedbackMessage,
+      );
+    } else if (challenge is ShakeChallenge) {
+      return _ShakeMissionTaskView(
+        challenge: challenge,
+        feedbackMessage: feedbackMessage,
+      );
+    }
+
+    return const Center(child: Text('Unsupported Challenge Type'));
+  }
+}
+
+/// Math Task Interactive View
+class _MathMissionTaskView extends StatefulWidget {
+  final MathChallenge challenge;
+  final String? feedbackMessage;
+
+  const _MathMissionTaskView({
+    required this.challenge,
+    this.feedbackMessage,
+  });
+
+  @override
+  State<_MathMissionTaskView> createState() => _MathMissionTaskViewState();
+}
+
+class _MathMissionTaskViewState extends State<_MathMissionTaskView> {
+  String _inputBuffer = '';
+
+  void _onKeyPress(String val) {
+    if (_inputBuffer.length < 5) {
+      setState(() => _inputBuffer += val);
+    }
+  }
+
+  void _onBackspace() {
+    if (_inputBuffer.isNotEmpty) {
+      setState(() => _inputBuffer = _inputBuffer.substring(0, _inputBuffer.length - 1));
+    }
+  }
+
+  void _onClear() {
+    setState(() => _inputBuffer = '');
+  }
+
+  void _onSubmit() {
+    if (_inputBuffer.isNotEmpty) {
+      HapticFeedback.mediumImpact();
+      context.read<MissionBloc>().add(SubmitTaskAnswer(_inputBuffer));
+      _onClear();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        AppCard.accent(
+          child: Column(
+            children: [
+              Text(
+                'STAGE 1: QUICK MATH',
+                style: AppTypography.labelSmall.copyWith(
+                  color: AppColors.secondary,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1.0,
+                ),
+              ),
+              AppSpacing.gapH12,
+              Text(
+                widget.challenge.question,
+                style: AppTypography.displayLarge.copyWith(fontSize: 42),
+              ),
+              AppSpacing.gapH12,
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: AppSpacing.borderRadiusSm,
+                  border: Border.all(color: AppColors.border, width: 1.5),
+                ),
+                child: Text(
+                  _inputBuffer.isEmpty ? 'Tap numbers below...' : _inputBuffer,
+                  textAlign: TextAlign.center,
+                  style: AppTypography.headlineLarge.copyWith(
+                    color: _inputBuffer.isEmpty ? AppColors.textSecondary : AppColors.textPrimary,
+                    fontSize: 26,
+                  ),
+                ),
+              ),
+              if (widget.feedbackMessage != null) ...[
+                AppSpacing.gapH8,
+                Text(
+                  widget.feedbackMessage!,
+                  style: AppTypography.titleMedium.copyWith(color: AppColors.error),
+                ),
+              ],
+            ],
+          ),
+        ),
+        AppSpacing.gapH16,
+        Expanded(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: ['1', '2', '3'].map((digit) => _KeypadBtn(text: digit, onTap: () => _onKeyPress(digit))).toList(),
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: ['4', '5', '6'].map((digit) => _KeypadBtn(text: digit, onTap: () => _onKeyPress(digit))).toList(),
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: ['7', '8', '9'].map((digit) => _KeypadBtn(text: digit, onTap: () => _onKeyPress(digit))).toList(),
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  _KeypadBtn(text: 'C', onTap: _onClear, backgroundColor: AppColors.surface),
+                  _KeypadBtn(text: '0', onTap: () => _onKeyPress('0')),
+                  _KeypadBtn(
+                    icon: Icons.backspace_outlined,
+                    onTap: _onBackspace,
+                    backgroundColor: AppColors.surface,
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        AppSpacing.gapH12,
+        AppPrimaryButton(
+          label: 'Submit Stage 1',
+          icon: Icons.check_rounded,
+          onPressed: _inputBuffer.isEmpty ? null : _onSubmit,
+        ),
+      ],
+    );
+  }
+}
+
+class _KeypadBtn extends StatelessWidget {
+  final String? text;
+  final IconData? icon;
+  final VoidCallback onTap;
+  final Color? backgroundColor;
+
+  const _KeypadBtn({
+    this.text,
+    this.icon,
+    required this.onTap,
+    this.backgroundColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: AppSpacing.borderRadiusMd,
+      child: Container(
+        width: 68,
+        height: 56,
+        decoration: BoxDecoration(
+          color: backgroundColor ?? AppColors.surface,
+          borderRadius: AppSpacing.borderRadiusMd,
+          border: Border.all(color: AppColors.border),
+        ),
+        child: Center(
+          child: text != null
+              ? Text(
+                  text!,
+                  style: AppTypography.titleLarge.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
+                  ),
+                )
+              : Icon(icon, color: AppColors.textPrimary),
+        ),
+      ),
+    );
+  }
+}
+
+/// Memory Task Interactive View
+class _MemoryMissionTaskView extends StatefulWidget {
+  final MemoryChallenge challenge;
+  final String? feedbackMessage;
+
+  const _MemoryMissionTaskView({
+    required this.challenge,
+    this.feedbackMessage,
+  });
+
+  @override
+  State<_MemoryMissionTaskView> createState() => _MemoryMissionTaskViewState();
+}
+
+class _MemoryMissionTaskViewState extends State<_MemoryMissionTaskView> {
+  bool _isMemorizePhase = true;
+  Timer? _memorizeTimer;
+  final List<int> _userSelectedSequence = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _startMemorizePhase();
+  }
+
+  void _startMemorizePhase() {
+    _isMemorizePhase = true;
+    _memorizeTimer?.cancel();
+    _memorizeTimer = Timer(const Duration(seconds: 3), () {
+      if (mounted) {
+        setState(() {
+          _isMemorizePhase = false;
+        });
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _memorizeTimer?.cancel();
+    super.dispose();
+  }
+
+  void _onTileTap(int tileNum) {
+    if (_isMemorizePhase) return;
+
+    setState(() {
+      _userSelectedSequence.add(tileNum);
+    });
+
+    if (_userSelectedSequence.length == widget.challenge.sequenceLength) {
+      context.read<MissionBloc>().add(SubmitTaskAnswer(List<int>.from(_userSelectedSequence)));
+      _userSelectedSequence.clear();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final targetSeq = widget.challenge.targetSequence;
+
+    return Column(
+      children: [
+        AppCard.accent(
+          child: Column(
+            children: [
+              Text(
+                'STAGE 2: PATTERN RECALL',
+                style: AppTypography.labelSmall.copyWith(
+                  color: AppColors.secondary,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1.0,
+                ),
+              ),
+              AppSpacing.gapH8,
+              Text(
+                _isMemorizePhase
+                    ? 'Sequence: ${targetSeq.join(" - ")}'
+                    : 'Tap tiles 1-9 in order (${_userSelectedSequence.length}/${widget.challenge.sequenceLength})',
+                style: AppTypography.titleMedium.copyWith(color: AppColors.textPrimary),
+              ),
+              if (widget.feedbackMessage != null) ...[
+                AppSpacing.gapH8,
+                Text(
+                  widget.feedbackMessage!,
+                  style: AppTypography.bodySmall.copyWith(color: AppColors.error),
+                ),
+              ],
+            ],
+          ),
+        ),
+        AppSpacing.gapH16,
+        Expanded(
+          child: GridView.builder(
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 3,
+              crossAxisSpacing: 12,
+              mainAxisSpacing: 12,
+            ),
+            itemCount: 9,
+            itemBuilder: (context, index) {
+              final tileNum = index + 1;
+              final isTarget = targetSeq.contains(tileNum);
+
+              Color tileColor = AppColors.surface;
+              if (_isMemorizePhase && isTarget) {
+                tileColor = AppColors.secondary;
+              } else if (_userSelectedSequence.contains(tileNum)) {
+                tileColor = AppColors.secondary.withValues(alpha: 0.3);
+              }
+
+              return InkWell(
+                onTap: () => _onTileTap(tileNum),
+                borderRadius: AppSpacing.borderRadiusMd,
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  decoration: BoxDecoration(
+                    color: tileColor,
+                    borderRadius: AppSpacing.borderRadiusMd,
+                    border: Border.all(color: AppColors.border),
+                  ),
+                  child: Center(
+                    child: Text(
+                      '$tileNum',
+                      style: AppTypography.titleLarge.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: (_isMemorizePhase && isTarget) ? Colors.white : AppColors.textPrimary,
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Shake Task Interactive View
+class _ShakeMissionTaskView extends StatelessWidget {
+  final ShakeChallenge challenge;
+  final String? feedbackMessage;
+
+  const _ShakeMissionTaskView({
+    required this.challenge,
+    this.feedbackMessage,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final progress = challenge.progress;
+
+    return Column(
+      children: [
+        AppCard.accent(
+          child: Column(
+            children: [
+              Text(
+                'STAGE 3: ENERGY SHAKE',
+                style: AppTypography.labelSmall.copyWith(
+                  color: AppColors.secondary,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1.0,
+                ),
+              ),
+              AppSpacing.gapH8,
+              Text(
+                'Shake your device to reach 100%',
+                style: AppTypography.titleMedium.copyWith(color: AppColors.textPrimary),
+              ),
+            ],
+          ),
+        ),
+        AppSpacing.gapH24,
+        Expanded(
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                GestureDetector(
+                  onTap: () {
+                    // Manual tap simulator for desktop/emulator testing
+                    context.read<MissionBloc>().add(const SubmitTaskAnswer(5));
+                  },
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    width: 140,
+                    height: 140,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: AppColors.secondary.withValues(alpha: 0.15),
+                      border: Border.all(color: AppColors.secondary, width: 3),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.secondary.withValues(alpha: (0.4 * progress).clamp(0.0, 1.0)),
+                          blurRadius: 25,
+                          spreadRadius: 5,
+                        ),
+                      ],
+                    ),
+                    child: Icon(
+                      Icons.vibration_rounded,
+                      size: 64,
+                      color: Color.lerp(AppColors.textSecondary, AppColors.secondary, progress),
+                    ),
+                  ),
+                ),
+                AppSpacing.gapH24,
+                Text(
+                  '${(progress * 100).toInt()}%',
+                  style: AppTypography.displayLarge.copyWith(
+                    color: AppColors.secondary,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                AppSpacing.gapH8,
+                Text(
+                  '${challenge.currentShakes} / ${challenge.targetShakes} Shakes',
+                  style: AppTypography.bodyMedium.copyWith(color: AppColors.textSecondary),
+                ),
+                AppSpacing.gapH8,
+                Text(
+                  '(Tap icon above or shake phone to trigger)',
+                  style: AppTypography.labelSmall.copyWith(color: AppColors.textSecondary),
+                ),
+              ],
+            ),
+          ),
+        ),
+        AppSpacing.gapH16,
+        AppPrimaryButton(
+          label: 'Shake Device (+5 Shakes)',
+          icon: Icons.vibration_rounded,
+          onPressed: () {
+            context.read<MissionBloc>().add(const SubmitTaskAnswer(5));
+          },
+        ),
+      ],
+    );
+  }
+}
+
+/// In-screen success banner overlay — flies in from top, auto-dismisses after 900ms
+class _SuccessBannerOverlay extends StatefulWidget {
+  final String message;
+  final VoidCallback onDismissed;
+
+  const _SuccessBannerOverlay({required this.message, required this.onDismissed});
+
+  @override
+  State<_SuccessBannerOverlay> createState() => _SuccessBannerOverlayState();
+}
+
+class _SuccessBannerOverlayState extends State<_SuccessBannerOverlay>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<Offset> _slideAnim;
+  late Animation<double> _fadeAnim;
+  Timer? _dismissTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: AppAnimations.fast,
+    );
+    _slideAnim = Tween<Offset>(
+      begin: const Offset(0, -1),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _controller, curve: AppAnimations.enterCurve));
+    _fadeAnim = CurvedAnimation(parent: _controller, curve: Curves.easeIn);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _controller.forward();
+      _dismissTimer = Timer(const Duration(milliseconds: 900), () {
+        if (mounted) {
+          _controller.reverse().then((_) => widget.onDismissed());
+        }
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _dismissTimer?.cancel();
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Positioned(
+      top: MediaQuery.of(context).padding.top + 16,
+      left: 24,
+      right: 24,
+      child: SlideTransition(
+        position: _slideAnim,
+        child: FadeTransition(
+          opacity: _fadeAnim,
+          child: Material(
+            color: Colors.transparent,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+              decoration: BoxDecoration(
+                gradient: AppColors.primaryGradient,
+                borderRadius: AppSpacing.borderRadiusLg,
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.secondary.withValues(alpha: 0.35),
+                    blurRadius: 20,
+                    offset: const Offset(0, 6),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.check_circle_rounded, color: Colors.white, size: 22),
+                  AppSpacing.gapW12,
+                  Expanded(
+                    child: Text(
+                      widget.message,
+                      style: AppTypography.titleMedium.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}

@@ -52,4 +52,29 @@ abstract class AppShadows {
       spreadRadius: -4.0,
     ),
   ];
+
+  /// Elevated card with stronger warm ambient depth — for hero/accent cards
+  static const List<BoxShadow> card = [
+    BoxShadow(
+      color: Color(0x1A8C420D),
+      blurRadius: 20.0,
+      offset: Offset(0, 8),
+      spreadRadius: -3.0,
+    ),
+    BoxShadow(
+      color: Color(0x0A000000),
+      blurRadius: 6.0,
+      offset: Offset(0, 3),
+    ),
+  ];
+
+  /// Strong coloured glow used for hero badge highlights and celebration elements
+  static const List<BoxShadow> glow = [
+    BoxShadow(
+      color: Color(0x4DFF8C42), // ~30% orange glow
+      blurRadius: 32.0,
+      offset: Offset(0, 0),
+      spreadRadius: 4.0,
+    ),
+  ];
 }
