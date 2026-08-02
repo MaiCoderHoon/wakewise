@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'core/constants/theme/light_theme.dart';
+
+import 'core/services/time_of_day_service.dart';
+import 'core/theme/dynamic_theme_manager.dart';
 import 'data/datasources/achievement_local_datasource.dart';
 import 'data/datasources/alarm_local_datasource.dart';
 import 'data/datasources/stats_local_datasource.dart';
@@ -48,11 +50,16 @@ void main() async {
   final AchievementLocalDataSource achievementDataSource = AchievementLocalDataSourceImpl(achievementBox);
   final AchievementRepository achievementRepository = AchievementRepositoryImpl(localDataSource: achievementDataSource);
 
+  // Initialize Circadian Dynamic Theme Architecture
+  const timeOfDayService = TimeOfDayService();
+  final dynamicThemeManager = DynamicThemeManager(timeOfDayService: timeOfDayService);
+
   runApp(WakewiseApp(
     alarmRepository: alarmRepository,
     statsRepository: statsRepository,
     achievementRepository: achievementRepository,
     notificationService: notificationService,
+    dynamicThemeManager: dynamicThemeManager,
   ));
 }
 
@@ -61,6 +68,7 @@ class WakewiseApp extends StatelessWidget {
   final StatsRepository statsRepository;
   final AchievementRepository achievementRepository;
   final NotificationService notificationService;
+  final DynamicThemeManager? dynamicThemeManager;
 
   const WakewiseApp({
     super.key,
@@ -68,10 +76,13 @@ class WakewiseApp extends StatelessWidget {
     required this.statsRepository,
     required this.achievementRepository,
     required this.notificationService,
+    this.dynamicThemeManager,
   });
 
   @override
   Widget build(BuildContext context) {
+    final themeManager = dynamicThemeManager ?? DynamicThemeManager();
+
     return MultiBlocProvider(
       providers: [
         BlocProvider<AlarmBloc>(
@@ -92,11 +103,24 @@ class WakewiseApp extends StatelessWidget {
           )..add(const LoadGamificationData()),
         ),
       ],
-      child: MaterialApp.router(
-        debugShowCheckedModeBanner: false,
-        title: 'WakeWise',
-        theme: lightThemeData,
-        routerConfig: appRouter,
+      child: ListenableBuilder(
+        listenable: themeManager,
+        builder: (context, child) {
+          return MaterialApp.router(
+            debugShowCheckedModeBanner: false,
+            title: 'WakeWise',
+            theme: themeManager.currentThemeData,
+            routerConfig: appRouter,
+            builder: (context, child) {
+              return AnimatedTheme(
+                data: themeManager.currentThemeData,
+                duration: const Duration(milliseconds: 600),
+                curve: Curves.easeInOut,
+                child: child ?? const SizedBox.shrink(),
+              );
+            },
+          );
+        },
       ),
     );
   }
