@@ -208,91 +208,105 @@ class _MathMissionTaskViewState extends State<_MathMissionTaskView> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        AppCard.accent(
-          child: Column(
-            children: [
-              Text(
-                'STAGE 1: QUICK MATH',
-                style: AppTypography.labelSmall.copyWith(
-                  color: AppColors.secondary,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 1.0,
-                ),
-              ),
-              AppSpacing.gapH12,
-              Text(
-                widget.challenge.question,
-                style: AppTypography.displayLarge.copyWith(fontSize: 42),
-              ),
-              AppSpacing.gapH12,
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                decoration: BoxDecoration(
-                  color: AppColors.surface,
-                  borderRadius: AppSpacing.borderRadiusSm,
-                  border: Border.all(color: AppColors.border, width: 1.5),
-                ),
-                child: Text(
-                  _inputBuffer.isEmpty ? 'Tap numbers below...' : _inputBuffer,
-                  textAlign: TextAlign.center,
-                  style: AppTypography.headlineLarge.copyWith(
-                    color: _inputBuffer.isEmpty ? AppColors.textSecondary : AppColors.textPrimary,
-                    fontSize: 26,
-                  ),
-                ),
-              ),
-              if (widget.feedbackMessage != null) ...[
-                AppSpacing.gapH8,
-                Text(
-                  widget.feedbackMessage!,
-                  style: AppTypography.titleMedium.copyWith(color: AppColors.error),
-                ),
-              ],
-            ],
-          ),
-        ),
-        AppSpacing.gapH16,
-        Expanded(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: ['1', '2', '3'].map((digit) => _KeypadBtn(text: digit, onTap: () => _onKeyPress(digit))).toList(),
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: ['4', '5', '6'].map((digit) => _KeypadBtn(text: digit, onTap: () => _onKeyPress(digit))).toList(),
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: ['7', '8', '9'].map((digit) => _KeypadBtn(text: digit, onTap: () => _onKeyPress(digit))).toList(),
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: constraints.maxHeight),
+            child: IntrinsicHeight(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  _KeypadBtn(text: 'C', onTap: _onClear, backgroundColor: AppColors.surface),
-                  _KeypadBtn(text: '0', onTap: () => _onKeyPress('0')),
-                  _KeypadBtn(
-                    icon: Icons.backspace_outlined,
-                    onTap: _onBackspace,
-                    backgroundColor: AppColors.surface,
+                  AppCard.accent(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    child: Column(
+                      children: [
+                        Text(
+                          'STAGE 1: QUICK MATH',
+                          style: AppTypography.labelSmall.copyWith(
+                            color: AppColors.secondary,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 1.0,
+                          ),
+                        ),
+                        AppSpacing.gapH8,
+                        Text(
+                          widget.challenge.question,
+                          style: AppTypography.displayLarge.copyWith(fontSize: 34),
+                        ),
+                        AppSpacing.gapH8,
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                          decoration: BoxDecoration(
+                            color: AppColors.surface,
+                            borderRadius: AppSpacing.borderRadiusSm,
+                            border: Border.all(color: AppColors.border, width: 1.5),
+                          ),
+                          child: Text(
+                            _inputBuffer.isEmpty ? 'Tap numbers below...' : _inputBuffer,
+                            textAlign: TextAlign.center,
+                            style: AppTypography.headlineLarge.copyWith(
+                              color: _inputBuffer.isEmpty ? AppColors.textSecondary : AppColors.textPrimary,
+                              fontSize: 24,
+                            ),
+                          ),
+                        ),
+                        if (widget.feedbackMessage != null) ...[
+                          AppSpacing.gapH8,
+                          Text(
+                            widget.feedbackMessage!,
+                            style: AppTypography.titleMedium.copyWith(color: AppColors.error),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                  AppSpacing.gapH12,
+                  Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: ['1', '2', '3'].map((digit) => _KeypadBtn(text: digit, onTap: () => _onKeyPress(digit))).toList(),
+                      ),
+                      const SizedBox(height: 6),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: ['4', '5', '6'].map((digit) => _KeypadBtn(text: digit, onTap: () => _onKeyPress(digit))).toList(),
+                      ),
+                      const SizedBox(height: 6),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: ['7', '8', '9'].map((digit) => _KeypadBtn(text: digit, onTap: () => _onKeyPress(digit))).toList(),
+                      ),
+                      const SizedBox(height: 6),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          _KeypadBtn(text: 'C', onTap: _onClear, backgroundColor: AppColors.surface),
+                          _KeypadBtn(text: '0', onTap: () => _onKeyPress('0')),
+                          _KeypadBtn(
+                            icon: Icons.backspace_outlined,
+                            onTap: _onBackspace,
+                            backgroundColor: AppColors.surface,
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  AppSpacing.gapH12,
+                  AppPrimaryButton(
+                    label: 'Submit Stage 1',
+                    icon: Icons.check_rounded,
+                    onPressed: _inputBuffer.isEmpty ? null : _onSubmit,
                   ),
                 ],
               ),
-            ],
+            ),
           ),
-        ),
-        AppSpacing.gapH12,
-        AppPrimaryButton(
-          label: 'Submit Stage 1',
-          icon: Icons.check_rounded,
-          onPressed: _inputBuffer.isEmpty ? null : _onSubmit,
-        ),
-      ],
+        );
+      },
     );
   }
 }
@@ -316,8 +330,8 @@ class _KeypadBtn extends StatelessWidget {
       onTap: onTap,
       borderRadius: AppSpacing.borderRadiusMd,
       child: Container(
-        width: 68,
-        height: 56,
+        width: 64,
+        height: 48,
         decoration: BoxDecoration(
           color: backgroundColor ?? AppColors.surface,
           borderRadius: AppSpacing.borderRadiusMd,
@@ -332,7 +346,7 @@ class _KeypadBtn extends StatelessWidget {
                     color: AppColors.textPrimary,
                   ),
                 )
-              : Icon(icon, color: AppColors.textPrimary),
+              : Icon(icon, color: AppColors.textPrimary, size: 20),
         ),
       ),
     );
@@ -399,81 +413,98 @@ class _MemoryMissionTaskViewState extends State<_MemoryMissionTaskView> {
   Widget build(BuildContext context) {
     final targetSeq = widget.challenge.targetSequence;
 
-    return Column(
-      children: [
-        AppCard.accent(
-          child: Column(
-            children: [
-              Text(
-                'STAGE 2: PATTERN RECALL',
-                style: AppTypography.labelSmall.copyWith(
-                  color: AppColors.secondary,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 1.0,
-                ),
-              ),
-              AppSpacing.gapH8,
-              Text(
-                _isMemorizePhase
-                    ? 'Sequence: ${targetSeq.join(" - ")}'
-                    : 'Tap tiles 1-9 in order (${_userSelectedSequence.length}/${widget.challenge.sequenceLength})',
-                style: AppTypography.titleMedium.copyWith(color: AppColors.textPrimary),
-              ),
-              if (widget.feedbackMessage != null) ...[
-                AppSpacing.gapH8,
-                Text(
-                  widget.feedbackMessage!,
-                  style: AppTypography.bodySmall.copyWith(color: AppColors.error),
-                ),
-              ],
-            ],
-          ),
-        ),
-        AppSpacing.gapH16,
-        Expanded(
-          child: GridView.builder(
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 3,
-              crossAxisSpacing: 12,
-              mainAxisSpacing: 12,
-            ),
-            itemCount: 9,
-            itemBuilder: (context, index) {
-              final tileNum = index + 1;
-              final isTarget = targetSeq.contains(tileNum);
-
-              Color tileColor = AppColors.surface;
-              if (_isMemorizePhase && isTarget) {
-                tileColor = AppColors.secondary;
-              } else if (_userSelectedSequence.contains(tileNum)) {
-                tileColor = AppColors.secondary.withValues(alpha: 0.3);
-              }
-
-              return InkWell(
-                onTap: () => _onTileTap(tileNum),
-                borderRadius: AppSpacing.borderRadiusMd,
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 300),
-                  decoration: BoxDecoration(
-                    color: tileColor,
-                    borderRadius: AppSpacing.borderRadiusMd,
-                    border: Border.all(color: AppColors.border),
-                  ),
-                  child: Center(
-                    child: Text(
-                      '$tileNum',
-                      style: AppTypography.titleLarge.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: (_isMemorizePhase && isTarget) ? Colors.white : AppColors.textPrimary,
-                      ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: constraints.maxHeight),
+            child: IntrinsicHeight(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  AppCard.accent(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    child: Column(
+                      children: [
+                        Text(
+                          'STAGE 2: PATTERN RECALL',
+                          style: AppTypography.labelSmall.copyWith(
+                            color: AppColors.secondary,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 1.0,
+                          ),
+                        ),
+                        AppSpacing.gapH8,
+                        Text(
+                          _isMemorizePhase
+                              ? 'Sequence: ${targetSeq.join(" - ")}'
+                              : 'Tap tiles 1-9 in order (${_userSelectedSequence.length}/${widget.challenge.sequenceLength})',
+                          style: AppTypography.titleMedium.copyWith(color: AppColors.textPrimary),
+                          textAlign: TextAlign.center,
+                        ),
+                        if (widget.feedbackMessage != null) ...[
+                          AppSpacing.gapH8,
+                          Text(
+                            widget.feedbackMessage!,
+                            style: AppTypography.bodySmall.copyWith(color: AppColors.error),
+                          ),
+                        ],
+                      ],
                     ),
                   ),
-                ),
-              );
-            },
+                  AppSpacing.gapH16,
+                  GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 3,
+                      crossAxisSpacing: 10,
+                      mainAxisSpacing: 10,
+                      childAspectRatio: 1.2,
+                    ),
+                    itemCount: 9,
+                    itemBuilder: (context, index) {
+                      final tileNum = index + 1;
+                      final isTarget = targetSeq.contains(tileNum);
+
+                      Color tileColor = AppColors.surface;
+                      if (_isMemorizePhase && isTarget) {
+                        tileColor = AppColors.secondary;
+                      } else if (_userSelectedSequence.contains(tileNum)) {
+                        tileColor = AppColors.secondary.withValues(alpha: 0.3);
+                      }
+
+                      return InkWell(
+                        onTap: () => _onTileTap(tileNum),
+                        borderRadius: AppSpacing.borderRadiusMd,
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 300),
+                          decoration: BoxDecoration(
+                            color: tileColor,
+                            borderRadius: AppSpacing.borderRadiusMd,
+                            border: Border.all(color: AppColors.border),
+                          ),
+                          child: Center(
+                            child: Text(
+                              '$tileNum',
+                              style: AppTypography.titleLarge.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: (_isMemorizePhase && isTarget) ? Colors.white : AppColors.textPrimary,
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                  AppSpacing.gapH16,
+                ],
+              ),
+            ),
           ),
-        ),
-      ],
+        );
+      },
     );
   }
 }
@@ -492,92 +523,105 @@ class _ShakeMissionTaskView extends StatelessWidget {
   Widget build(BuildContext context) {
     final progress = challenge.progress;
 
-    return Column(
-      children: [
-        AppCard.accent(
-          child: Column(
-            children: [
-              Text(
-                'STAGE 3: ENERGY SHAKE',
-                style: AppTypography.labelSmall.copyWith(
-                  color: AppColors.secondary,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 1.0,
-                ),
-              ),
-              AppSpacing.gapH8,
-              Text(
-                'Shake your device to reach 100%',
-                style: AppTypography.titleMedium.copyWith(color: AppColors.textPrimary),
-              ),
-            ],
-          ),
-        ),
-        AppSpacing.gapH24,
-        Expanded(
-          child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                GestureDetector(
-                  onTap: () {
-                    // Manual tap simulator for desktop/emulator testing
-                    context.read<MissionBloc>().add(const SubmitTaskAnswer(5));
-                  },
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
-                    width: 140,
-                    height: 140,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: AppColors.secondary.withValues(alpha: 0.15),
-                      border: Border.all(color: AppColors.secondary, width: 3),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.secondary.withValues(alpha: (0.4 * progress).clamp(0.0, 1.0)),
-                          blurRadius: 25,
-                          spreadRadius: 5,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: constraints.maxHeight),
+            child: IntrinsicHeight(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  AppCard.accent(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    child: Column(
+                      children: [
+                        Text(
+                          'STAGE 3: ENERGY SHAKE',
+                          style: AppTypography.labelSmall.copyWith(
+                            color: AppColors.secondary,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 1.0,
+                          ),
+                        ),
+                        AppSpacing.gapH8,
+                        Text(
+                          'Shake your device to reach 100%',
+                          style: AppTypography.titleMedium.copyWith(color: AppColors.textPrimary),
                         ),
                       ],
                     ),
-                    child: Icon(
-                      Icons.vibration_rounded,
-                      size: 64,
-                      color: Color.lerp(AppColors.textSecondary, AppColors.secondary, progress),
+                  ),
+                  AppSpacing.gapH16,
+                  Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        GestureDetector(
+                          onTap: () {
+                            // Manual tap simulator for desktop/emulator testing
+                            context.read<MissionBloc>().add(const SubmitTaskAnswer(5));
+                          },
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 200),
+                            width: 120,
+                            height: 120,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: AppColors.secondary.withValues(alpha: 0.15),
+                              border: Border.all(color: AppColors.secondary, width: 3),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppColors.secondary.withValues(alpha: (0.4 * progress).clamp(0.0, 1.0)),
+                                  blurRadius: 20,
+                                  spreadRadius: 4,
+                                ),
+                              ],
+                            ),
+                            child: Icon(
+                              Icons.vibration_rounded,
+                              size: 56,
+                              color: Color.lerp(AppColors.textSecondary, AppColors.secondary, progress),
+                            ),
+                          ),
+                        ),
+                        AppSpacing.gapH16,
+                        Text(
+                          '${(progress * 100).toInt()}%',
+                          style: AppTypography.displayLarge.copyWith(
+                            color: AppColors.secondary,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 36,
+                          ),
+                        ),
+                        AppSpacing.gapH4,
+                        Text(
+                          '${challenge.currentShakes} / ${challenge.targetShakes} Shakes',
+                          style: AppTypography.bodyMedium.copyWith(color: AppColors.textSecondary),
+                        ),
+                        AppSpacing.gapH4,
+                        Text(
+                          '(Tap icon above or shake phone to trigger)',
+                          style: AppTypography.labelSmall.copyWith(color: AppColors.textSecondary),
+                        ),
+                      ],
                     ),
                   ),
-                ),
-                AppSpacing.gapH24,
-                Text(
-                  '${(progress * 100).toInt()}%',
-                  style: AppTypography.displayLarge.copyWith(
-                    color: AppColors.secondary,
-                    fontWeight: FontWeight.bold,
+                  AppSpacing.gapH16,
+                  AppPrimaryButton(
+                    label: 'Shake Device (+5 Shakes)',
+                    icon: Icons.vibration_rounded,
+                    onPressed: () {
+                      context.read<MissionBloc>().add(const SubmitTaskAnswer(5));
+                    },
                   ),
-                ),
-                AppSpacing.gapH8,
-                Text(
-                  '${challenge.currentShakes} / ${challenge.targetShakes} Shakes',
-                  style: AppTypography.bodyMedium.copyWith(color: AppColors.textSecondary),
-                ),
-                AppSpacing.gapH8,
-                Text(
-                  '(Tap icon above or shake phone to trigger)',
-                  style: AppTypography.labelSmall.copyWith(color: AppColors.textSecondary),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
-        ),
-        AppSpacing.gapH16,
-        AppPrimaryButton(
-          label: 'Shake Device (+5 Shakes)',
-          icon: Icons.vibration_rounded,
-          onPressed: () {
-            context.read<MissionBloc>().add(const SubmitTaskAnswer(5));
-          },
-        ),
-      ],
+        );
+      },
     );
   }
 }
