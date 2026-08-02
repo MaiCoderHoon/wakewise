@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import '../../core/constants/theme/app_colors.dart';
-import '../../core/constants/theme/app_shadows.dart';
 import '../../core/constants/theme/app_spacing.dart';
-import '../../core/constants/theme/app_typography.dart';
 import '../../domain/entities/alarm.dart';
 import '../blocs/alarm/alarm_bloc.dart';
 import '../blocs/alarm/alarm_event.dart';
@@ -50,20 +47,22 @@ class _AddEditAlarmScreenState extends State<AddEditAlarmScreen> {
   }
 
   Future<void> _pickTime() async {
+    final theme = Theme.of(context);
+
     final picked = await showTimePicker(
       context: context,
       initialTime: _selectedTime,
       builder: (context, child) {
         return Theme(
-          data: Theme.of(context).copyWith(
+          data: theme.copyWith(
             timePickerTheme: TimePickerThemeData(
-              backgroundColor: AppColors.surface,
-              hourMinuteColor: AppColors.surfaceSubtle,
-              hourMinuteTextColor: AppColors.textPrimary,
-              dayPeriodColor: AppColors.primaryLight,
-              dayPeriodTextColor: AppColors.textPrimary,
-              dialHandColor: AppColors.secondary,
-              dialBackgroundColor: AppColors.surfaceSubtle,
+              backgroundColor: theme.colorScheme.surface,
+              hourMinuteColor: theme.colorScheme.primary.withValues(alpha: 0.15),
+              hourMinuteTextColor: theme.colorScheme.onSurface,
+              dayPeriodColor: theme.colorScheme.primary.withValues(alpha: 0.2),
+              dayPeriodTextColor: theme.colorScheme.onSurface,
+              dialHandColor: theme.colorScheme.primary,
+              dialBackgroundColor: theme.colorScheme.primary.withValues(alpha: 0.1),
               shape: RoundedRectangleBorder(borderRadius: AppSpacing.borderRadiusLg),
             ),
           ),
@@ -106,6 +105,9 @@ class _AddEditAlarmScreenState extends State<AddEditAlarmScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final primaryColor = theme.colorScheme.primary;
+
     final formattedHour = _selectedTime.hourOfPeriod == 0 ? 12 : _selectedTime.hourOfPeriod;
     final formattedMinute = _selectedTime.minute.toString().padLeft(2, '0');
     final period = _selectedTime.period == DayPeriod.am ? 'AM' : 'PM';
@@ -117,7 +119,7 @@ class _AddEditAlarmScreenState extends State<AddEditAlarmScreen> {
         actions: [
           if (_isEditing)
             IconButton(
-              icon: const Icon(Icons.delete_outline_rounded, color: AppColors.error),
+              icon: Icon(Icons.delete_outline_rounded, color: theme.colorScheme.error),
               onPressed: _onDelete,
             ),
         ],
@@ -132,8 +134,8 @@ class _AddEditAlarmScreenState extends State<AddEditAlarmScreen> {
               children: [
                 Text(
                   'ALARM TIME',
-                  style: AppTypography.labelSmall.copyWith(
-                    color: AppColors.secondaryDark,
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: primaryColor,
                     fontWeight: FontWeight.bold,
                     letterSpacing: 1.0,
                   ),
@@ -146,17 +148,16 @@ class _AddEditAlarmScreenState extends State<AddEditAlarmScreen> {
                   children: [
                     Text(
                       '${formattedHour.toString().padLeft(2, '0')}:$formattedMinute',
-                      style: AppTypography.displayLarge.copyWith(
+                      style: theme.textTheme.displayLarge?.copyWith(
                         fontSize: 64,
                         fontWeight: FontWeight.w800,
-                        color: AppColors.textPrimary,
                       ),
                     ),
                     AppSpacing.gapW8,
                     Text(
                       period,
-                      style: AppTypography.displaySmall.copyWith(
-                        color: AppColors.secondaryDark,
+                      style: theme.textTheme.displaySmall?.copyWith(
+                        color: primaryColor,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -166,11 +167,17 @@ class _AddEditAlarmScreenState extends State<AddEditAlarmScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(Icons.edit_calendar_rounded, size: 16, color: AppColors.textSecondary),
+                    Icon(
+                      Icons.edit_calendar_rounded,
+                      size: 16,
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                    ),
                     AppSpacing.gapW4,
                     Text(
                       'Tap to change time',
-                      style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary),
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                      ),
                     ),
                   ],
                 ),
@@ -181,20 +188,23 @@ class _AddEditAlarmScreenState extends State<AddEditAlarmScreen> {
           AppSpacing.gapH24,
 
           // Label Input Field
-          Text('Label', style: AppTypography.headlineSmall),
+          Text('Label', style: theme.textTheme.headlineSmall),
           AppSpacing.gapH8,
           TextField(
             controller: _labelController,
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               hintText: 'e.g. Work Wake Up, Workout',
-              prefixIcon: Icon(Icons.label_outline_rounded, color: AppColors.textSecondary),
+              prefixIcon: Icon(
+                Icons.label_outline_rounded,
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+              ),
             ),
           ),
 
           AppSpacing.gapH24,
 
           // Repeat Days Selector
-          Text('Repeat Days', style: AppTypography.headlineSmall),
+          Text('Repeat Days', style: theme.textTheme.headlineSmall),
           AppSpacing.gapH8,
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -212,7 +222,7 @@ class _AddEditAlarmScreenState extends State<AddEditAlarmScreen> {
           AppSpacing.gapH24,
 
           // Challenge Selector
-          Text('Wake-Up Challenge', style: AppTypography.headlineSmall),
+          Text('Wake-Up Challenge', style: theme.textTheme.headlineSmall),
           AppSpacing.gapH8,
           Column(
             children: ChallengeType.values.map((challenge) {
@@ -221,23 +231,26 @@ class _AddEditAlarmScreenState extends State<AddEditAlarmScreen> {
                 padding: const EdgeInsets.only(bottom: AppSpacing.xs),
                 child: AppCard(
                   onTap: () => setState(() => _selectedChallenge = challenge),
-                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.md,
+                    vertical: AppSpacing.sm,
+                  ),
+                  borderRadius: AppSpacing.radiusLg,
                   border: Border.all(
-                    color: isSelected ? AppColors.secondary : AppColors.border,
+                    color: isSelected ? primaryColor : theme.colorScheme.outline.withValues(alpha: 0.4),
                     width: isSelected ? 2.0 : 1.0,
                   ),
-                  backgroundColor: isSelected ? AppColors.surfaceSubtle : AppColors.surface,
                   child: Row(
                     children: [
                       Container(
                         padding: AppSpacing.paddingAllSm,
                         decoration: BoxDecoration(
-                          color: isSelected ? AppColors.primary : AppColors.surfaceSubtle,
+                          color: isSelected ? primaryColor : primaryColor.withValues(alpha: 0.12),
                           shape: BoxShape.circle,
                         ),
                         child: Icon(
                           challenge.icon,
-                          color: isSelected ? AppColors.textOnPrimary : AppColors.secondary,
+                          color: isSelected ? Colors.white : primaryColor,
                           size: 22,
                         ),
                       ),
@@ -246,13 +259,17 @@ class _AddEditAlarmScreenState extends State<AddEditAlarmScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(challenge.displayName, style: AppTypography.titleLarge),
-                            Text(challenge.description, style: AppTypography.bodySmall),
+                            Text(challenge.displayName, style: theme.textTheme.titleLarge),
+                            Text(challenge.description, style: theme.textTheme.bodySmall),
                           ],
                         ),
                       ),
                       if (isSelected)
-                        const Icon(Icons.check_circle_rounded, color: AppColors.secondary, size: 24),
+                        Icon(
+                          Icons.check_circle_rounded,
+                          color: primaryColor,
+                          size: 24,
+                        ),
                     ],
                   ),
                 ),
@@ -301,6 +318,9 @@ class _DayChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final primaryColor = theme.colorScheme.primary;
+
     return GestureDetector(
       onTap: () => onToggle(dayIndex),
       child: AnimatedContainer(
@@ -308,19 +328,18 @@ class _DayChip extends StatelessWidget {
         width: 42,
         height: 42,
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.primary : AppColors.surface,
+          color: isSelected ? primaryColor : theme.colorScheme.surface,
           borderRadius: AppSpacing.borderRadiusMd,
           border: Border.all(
-            color: isSelected ? AppColors.primaryDark : AppColors.border,
+            color: isSelected ? primaryColor : theme.colorScheme.outline.withValues(alpha: 0.4),
             width: isSelected ? 1.5 : 1.0,
           ),
-          boxShadow: isSelected ? AppShadows.soft : null,
         ),
         child: Center(
           child: Text(
             label,
-            style: AppTypography.labelSmall.copyWith(
-              color: isSelected ? AppColors.textOnPrimary : AppColors.textSecondary,
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: isSelected ? Colors.white : theme.colorScheme.onSurface.withValues(alpha: 0.7),
               fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
             ),
           ),

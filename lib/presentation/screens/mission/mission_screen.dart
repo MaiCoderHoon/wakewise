@@ -5,9 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/constants/theme/app_animations.dart';
 
-import '../../../../core/constants/theme/app_colors.dart';
 import '../../../../core/constants/theme/app_spacing.dart';
-import '../../../../core/constants/theme/app_typography.dart';
 import '../../../../domain/challenges/entities/challenge_difficulty.dart';
 import '../../../../domain/challenges/entities/math_challenge.dart';
 import '../../../../domain/challenges/entities/memory_challenge.dart';
@@ -52,6 +50,8 @@ class _MissionScreenState extends State<MissionScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return BlocProvider.value(
       value: _missionBloc,
       child: AppPageScaffold(
@@ -121,8 +121,8 @@ class _MissionScreenState extends State<MissionScreen> {
               );
             }
 
-            return const Center(
-              child: CircularProgressIndicator(color: AppColors.secondary),
+            return Center(
+              child: CircularProgressIndicator(color: theme.colorScheme.primary),
             );
           },
         ),
@@ -208,6 +208,9 @@ class _MathMissionTaskViewState extends State<_MathMissionTaskView> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final primaryColor = theme.colorScheme.primary;
+
     return LayoutBuilder(
       builder: (context, constraints) {
         return SingleChildScrollView(
@@ -224,8 +227,8 @@ class _MathMissionTaskViewState extends State<_MathMissionTaskView> {
                       children: [
                         Text(
                           'STAGE 1: QUICK MATH',
-                          style: AppTypography.labelSmall.copyWith(
-                            color: AppColors.secondary,
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: primaryColor,
                             fontWeight: FontWeight.bold,
                             letterSpacing: 1.0,
                           ),
@@ -233,22 +236,27 @@ class _MathMissionTaskViewState extends State<_MathMissionTaskView> {
                         AppSpacing.gapH8,
                         Text(
                           widget.challenge.question,
-                          style: AppTypography.displayLarge.copyWith(fontSize: 34),
+                          style: theme.textTheme.displayLarge?.copyWith(fontSize: 34),
                         ),
                         AppSpacing.gapH8,
                         Container(
                           width: double.infinity,
                           padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
                           decoration: BoxDecoration(
-                            color: AppColors.surface,
+                            color: theme.colorScheme.surface,
                             borderRadius: AppSpacing.borderRadiusSm,
-                            border: Border.all(color: AppColors.border, width: 1.5),
+                            border: Border.all(
+                              color: theme.colorScheme.outline.withValues(alpha: 0.5),
+                              width: 1.5,
+                            ),
                           ),
                           child: Text(
                             _inputBuffer.isEmpty ? 'Tap numbers below...' : _inputBuffer,
                             textAlign: TextAlign.center,
-                            style: AppTypography.headlineLarge.copyWith(
-                              color: _inputBuffer.isEmpty ? AppColors.textSecondary : AppColors.textPrimary,
+                            style: theme.textTheme.headlineLarge?.copyWith(
+                              color: _inputBuffer.isEmpty
+                                  ? theme.colorScheme.onSurface.withValues(alpha: 0.4)
+                                  : theme.colorScheme.onSurface,
                               fontSize: 24,
                             ),
                           ),
@@ -257,7 +265,9 @@ class _MathMissionTaskViewState extends State<_MathMissionTaskView> {
                           AppSpacing.gapH8,
                           Text(
                             widget.feedbackMessage!,
-                            style: AppTypography.titleMedium.copyWith(color: AppColors.error),
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              color: theme.colorScheme.error,
+                            ),
                           ),
                         ],
                       ],
@@ -284,12 +294,16 @@ class _MathMissionTaskViewState extends State<_MathMissionTaskView> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
-                          _KeypadBtn(text: 'C', onTap: _onClear, backgroundColor: AppColors.surface),
+                          _KeypadBtn(
+                            text: 'C',
+                            onTap: _onClear,
+                            backgroundColor: theme.colorScheme.primary.withValues(alpha: 0.12),
+                          ),
                           _KeypadBtn(text: '0', onTap: () => _onKeyPress('0')),
                           _KeypadBtn(
                             icon: Icons.backspace_outlined,
                             onTap: _onBackspace,
-                            backgroundColor: AppColors.surface,
+                            backgroundColor: theme.colorScheme.primary.withValues(alpha: 0.12),
                           ),
                         ],
                       ),
@@ -326,6 +340,8 @@ class _KeypadBtn extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return InkWell(
       onTap: onTap,
       borderRadius: AppSpacing.borderRadiusMd,
@@ -333,20 +349,21 @@ class _KeypadBtn extends StatelessWidget {
         width: 64,
         height: 48,
         decoration: BoxDecoration(
-          color: backgroundColor ?? AppColors.surface,
+          color: backgroundColor ?? theme.colorScheme.surface,
           borderRadius: AppSpacing.borderRadiusMd,
-          border: Border.all(color: AppColors.border),
+          border: Border.all(
+            color: theme.colorScheme.outline.withValues(alpha: 0.4),
+          ),
         ),
         child: Center(
           child: text != null
               ? Text(
                   text!,
-                  style: AppTypography.titleLarge.copyWith(
+                  style: theme.textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
                   ),
                 )
-              : Icon(icon, color: AppColors.textPrimary, size: 20),
+              : Icon(icon, color: theme.colorScheme.onSurface, size: 20),
         ),
       ),
     );
@@ -411,6 +428,8 @@ class _MemoryMissionTaskViewState extends State<_MemoryMissionTaskView> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final primaryColor = theme.colorScheme.primary;
     final targetSeq = widget.challenge.targetSequence;
 
     return LayoutBuilder(
@@ -429,8 +448,8 @@ class _MemoryMissionTaskViewState extends State<_MemoryMissionTaskView> {
                       children: [
                         Text(
                           'STAGE 2: PATTERN RECALL',
-                          style: AppTypography.labelSmall.copyWith(
-                            color: AppColors.secondary,
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: primaryColor,
                             fontWeight: FontWeight.bold,
                             letterSpacing: 1.0,
                           ),
@@ -440,14 +459,16 @@ class _MemoryMissionTaskViewState extends State<_MemoryMissionTaskView> {
                           _isMemorizePhase
                               ? 'Sequence: ${targetSeq.join(" - ")}'
                               : 'Tap tiles 1-9 in order (${_userSelectedSequence.length}/${widget.challenge.sequenceLength})',
-                          style: AppTypography.titleMedium.copyWith(color: AppColors.textPrimary),
+                          style: theme.textTheme.titleMedium,
                           textAlign: TextAlign.center,
                         ),
                         if (widget.feedbackMessage != null) ...[
                           AppSpacing.gapH8,
                           Text(
                             widget.feedbackMessage!,
-                            style: AppTypography.bodySmall.copyWith(color: AppColors.error),
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.error,
+                            ),
                           ),
                         ],
                       ],
@@ -468,11 +489,11 @@ class _MemoryMissionTaskViewState extends State<_MemoryMissionTaskView> {
                       final tileNum = index + 1;
                       final isTarget = targetSeq.contains(tileNum);
 
-                      Color tileColor = AppColors.surface;
+                      Color tileColor = theme.colorScheme.surface;
                       if (_isMemorizePhase && isTarget) {
-                        tileColor = AppColors.secondary;
+                        tileColor = primaryColor;
                       } else if (_userSelectedSequence.contains(tileNum)) {
-                        tileColor = AppColors.secondary.withValues(alpha: 0.3);
+                        tileColor = primaryColor.withValues(alpha: 0.3);
                       }
 
                       return InkWell(
@@ -483,14 +504,18 @@ class _MemoryMissionTaskViewState extends State<_MemoryMissionTaskView> {
                           decoration: BoxDecoration(
                             color: tileColor,
                             borderRadius: AppSpacing.borderRadiusMd,
-                            border: Border.all(color: AppColors.border),
+                            border: Border.all(
+                              color: theme.colorScheme.outline.withValues(alpha: 0.4),
+                            ),
                           ),
                           child: Center(
                             child: Text(
                               '$tileNum',
-                              style: AppTypography.titleLarge.copyWith(
+                              style: theme.textTheme.titleLarge?.copyWith(
                                 fontWeight: FontWeight.bold,
-                                color: (_isMemorizePhase && isTarget) ? Colors.white : AppColors.textPrimary,
+                                color: (_isMemorizePhase && isTarget)
+                                    ? Colors.white
+                                    : theme.colorScheme.onSurface,
                               ),
                             ),
                           ),
@@ -521,6 +546,8 @@ class _ShakeMissionTaskView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final primaryColor = theme.colorScheme.primary;
     final progress = challenge.progress;
 
     return LayoutBuilder(
@@ -539,8 +566,8 @@ class _ShakeMissionTaskView extends StatelessWidget {
                       children: [
                         Text(
                           'STAGE 3: ENERGY SHAKE',
-                          style: AppTypography.labelSmall.copyWith(
-                            color: AppColors.secondary,
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: primaryColor,
                             fontWeight: FontWeight.bold,
                             letterSpacing: 1.0,
                           ),
@@ -548,7 +575,7 @@ class _ShakeMissionTaskView extends StatelessWidget {
                         AppSpacing.gapH8,
                         Text(
                           'Shake your device to reach 100%',
-                          style: AppTypography.titleMedium.copyWith(color: AppColors.textPrimary),
+                          style: theme.textTheme.titleMedium,
                         ),
                       ],
                     ),
@@ -560,7 +587,6 @@ class _ShakeMissionTaskView extends StatelessWidget {
                       children: [
                         GestureDetector(
                           onTap: () {
-                            // Manual tap simulator for desktop/emulator testing
                             context.read<MissionBloc>().add(const SubmitTaskAnswer(5));
                           },
                           child: AnimatedContainer(
@@ -569,11 +595,11 @@ class _ShakeMissionTaskView extends StatelessWidget {
                             height: 120,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: AppColors.secondary.withValues(alpha: 0.15),
-                              border: Border.all(color: AppColors.secondary, width: 3),
+                              color: primaryColor.withValues(alpha: 0.15),
+                              border: Border.all(color: primaryColor, width: 3),
                               boxShadow: [
                                 BoxShadow(
-                                  color: AppColors.secondary.withValues(alpha: (0.4 * progress).clamp(0.0, 1.0)),
+                                  color: primaryColor.withValues(alpha: (0.4 * progress).clamp(0.0, 1.0)),
                                   blurRadius: 20,
                                   spreadRadius: 4,
                                 ),
@@ -582,15 +608,19 @@ class _ShakeMissionTaskView extends StatelessWidget {
                             child: Icon(
                               Icons.vibration_rounded,
                               size: 56,
-                              color: Color.lerp(AppColors.textSecondary, AppColors.secondary, progress),
+                              color: Color.lerp(
+                                theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                                primaryColor,
+                                progress,
+                              ),
                             ),
                           ),
                         ),
                         AppSpacing.gapH16,
                         Text(
                           '${(progress * 100).toInt()}%',
-                          style: AppTypography.displayLarge.copyWith(
-                            color: AppColors.secondary,
+                          style: theme.textTheme.displayLarge?.copyWith(
+                            color: primaryColor,
                             fontWeight: FontWeight.bold,
                             fontSize: 36,
                           ),
@@ -598,12 +628,16 @@ class _ShakeMissionTaskView extends StatelessWidget {
                         AppSpacing.gapH4,
                         Text(
                           '${challenge.currentShakes} / ${challenge.targetShakes} Shakes',
-                          style: AppTypography.bodyMedium.copyWith(color: AppColors.textSecondary),
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                          ),
                         ),
                         AppSpacing.gapH4,
                         Text(
                           '(Tap icon above or shake phone to trigger)',
-                          style: AppTypography.labelSmall.copyWith(color: AppColors.textSecondary),
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                          ),
                         ),
                       ],
                     ),
@@ -677,6 +711,9 @@ class _SuccessBannerOverlayState extends State<_SuccessBannerOverlay>
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final primaryColor = theme.colorScheme.primary;
+
     return Positioned(
       top: MediaQuery.of(context).padding.top + 16,
       left: 24,
@@ -690,11 +727,11 @@ class _SuccessBannerOverlayState extends State<_SuccessBannerOverlay>
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
               decoration: BoxDecoration(
-                gradient: AppColors.primaryGradient,
+                color: primaryColor,
                 borderRadius: AppSpacing.borderRadiusLg,
                 boxShadow: [
                   BoxShadow(
-                    color: AppColors.secondary.withValues(alpha: 0.35),
+                    color: primaryColor.withValues(alpha: 0.35),
                     blurRadius: 20,
                     offset: const Offset(0, 6),
                   ),
@@ -707,7 +744,7 @@ class _SuccessBannerOverlayState extends State<_SuccessBannerOverlay>
                   Expanded(
                     child: Text(
                       widget.message,
-                      style: AppTypography.titleMedium.copyWith(
+                      style: theme.textTheme.titleMedium?.copyWith(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
                       ),

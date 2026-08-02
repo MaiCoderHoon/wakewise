@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../core/constants/theme/app_colors.dart';
-import '../../../core/constants/theme/app_shadows.dart';
 import '../../../core/constants/theme/app_spacing.dart';
-import '../../../core/constants/theme/app_typography.dart';
 import '../../../data/datasources/achievement_local_datasource.dart';
 import '../../../domain/entities/achievement.dart';
 import '../../blocs/gamification/gamification_bloc.dart';
 import '../../blocs/gamification/gamification_state.dart';
 import '../../widgets/app_card.dart';
+import '../../widgets/app_hero_header.dart';
 import '../../widgets/app_page_scaffold.dart';
 
 /// Screen displaying locked and unlocked achievements & badges
@@ -36,8 +34,12 @@ class AchievementsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final primaryColor = theme.colorScheme.primary;
+
     return AppPageScaffold(
       isScrollable: true,
+      padding: EdgeInsets.zero,
       appBar: AppBar(
         title: const Text('Achievements & Badges'),
       ),
@@ -55,133 +57,158 @@ class AchievementsScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Header Summary Card
-              AppCard.accent(
-                child: Row(
-                  children: [
-                    Container(
-                      padding: AppSpacing.paddingAllMd,
-                      decoration: const BoxDecoration(
-                        color: AppColors.surface,
-                        shape: BoxShape.circle,
-                        boxShadow: AppShadows.soft,
+              AppHeroHeader(
+                child: AppCard.accent(
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: AppSpacing.paddingAllMd,
+                        decoration: BoxDecoration(
+                          color: primaryColor.withValues(alpha: 0.15),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(Icons.military_tech_rounded, color: primaryColor, size: 36),
                       ),
-                      child: const Icon(Icons.military_tech_rounded, color: AppColors.secondary, size: 36),
-                    ),
-                    AppSpacing.gapW16,
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Badge Collection', style: AppTypography.headlineMedium),
-                          AppSpacing.gapH4,
-                          Text(
-                            '$unlockedCount of ${achievements.length} Badges Unlocked',
-                            style: AppTypography.bodyMedium.copyWith(
-                              color: AppColors.secondaryDark,
-                              fontWeight: FontWeight.bold,
+                      AppSpacing.gapW16,
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Badge Collection', style: theme.textTheme.headlineMedium),
+                            AppSpacing.gapH4,
+                            Text(
+                              '$unlockedCount of ${achievements.length} Badges Unlocked',
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color: primaryColor,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
 
               AppSpacing.gapH24,
 
-              Text('All Achievements', style: AppTypography.headlineSmall),
-              AppSpacing.gapH12,
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('All Achievements', style: theme.textTheme.headlineSmall),
+                    AppSpacing.gapH12,
 
-              Column(
-                children: achievements.map((badge) {
-                  final icon = _getIconData(badge.iconName);
+                    Column(
+                      children: achievements.map((badge) {
+                        final icon = _getIconData(badge.iconName);
 
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: AppSpacing.md),
-                    child: AppCard(
-                      padding: AppSpacing.paddingAllMd,
-                      backgroundColor: badge.isUnlocked ? AppColors.surface : AppColors.surfaceSubtle.withValues(alpha: 0.5),
-                      child: Row(
-                        children: [
-                          Container(
-                            padding: AppSpacing.paddingAllSm,
-                            decoration: BoxDecoration(
-                              color: badge.isUnlocked ? AppColors.primary : AppColors.border,
-                              shape: BoxShape.circle,
-                            ),
-                            child: Icon(
-                              icon,
-                              color: badge.isUnlocked ? AppColors.textOnPrimary : AppColors.textMuted,
-                              size: 28,
-                            ),
-                          ),
-                          AppSpacing.gapW16,
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                          child: AppCard(
+                            padding: AppSpacing.paddingAllMd,
+                            borderRadius: AppSpacing.radiusLg,
+                            backgroundColor: badge.isUnlocked
+                                ? theme.colorScheme.surface
+                                : theme.colorScheme.surface.withValues(alpha: 0.5),
+                            child: Row(
                               children: [
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      badge.title,
-                                      style: AppTypography.titleLarge.copyWith(
-                                        color: badge.isUnlocked ? AppColors.textPrimary : AppColors.textMuted,
+                                Container(
+                                  padding: AppSpacing.paddingAllSm,
+                                  decoration: BoxDecoration(
+                                    color: badge.isUnlocked
+                                        ? primaryColor
+                                        : theme.colorScheme.outline.withValues(alpha: 0.3),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Icon(
+                                    icon,
+                                    color: badge.isUnlocked
+                                        ? Colors.white
+                                        : theme.colorScheme.onSurface.withValues(alpha: 0.4),
+                                    size: 28,
+                                  ),
+                                ),
+                                AppSpacing.gapW16,
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Expanded(
+                                            child: Text(
+                                              badge.title,
+                                              style: theme.textTheme.titleLarge?.copyWith(
+                                                color: badge.isUnlocked
+                                                    ? theme.colorScheme.onSurface
+                                                    : theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                                              ),
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ),
+                                          if (badge.isUnlocked)
+                                            Container(
+                                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                              decoration: BoxDecoration(
+                                                color: primaryColor.withValues(alpha: 0.15),
+                                                borderRadius: AppSpacing.borderRadiusFull,
+                                              ),
+                                              child: Text(
+                                                'UNLOCKED',
+                                                style: theme.textTheme.labelSmall?.copyWith(
+                                                  color: primaryColor,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                            ),
+                                        ],
                                       ),
-                                    ),
-                                    if (badge.isUnlocked)
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                        decoration: BoxDecoration(
-                                          color: AppColors.success.withValues(alpha: 0.15),
-                                          borderRadius: AppSpacing.borderRadiusFull,
+                                      AppSpacing.gapH4,
+                                      Text(
+                                        badge.description,
+                                        style: theme.textTheme.bodySmall?.copyWith(
+                                          color: badge.isUnlocked
+                                              ? theme.colorScheme.onSurface.withValues(alpha: 0.7)
+                                              : theme.colorScheme.onSurface.withValues(alpha: 0.4),
                                         ),
-                                        child: Text(
-                                          'UNLOCKED',
-                                          style: AppTypography.labelSmall.copyWith(
-                                            color: AppColors.success,
-                                            fontWeight: FontWeight.bold,
+                                      ),
+                                      AppSpacing.gapH8,
+                                      ClipRRect(
+                                        borderRadius: AppSpacing.borderRadiusFull,
+                                        child: LinearProgressIndicator(
+                                          value: badge.progress,
+                                          minHeight: 6,
+                                          backgroundColor: theme.colorScheme.outline.withValues(alpha: 0.2),
+                                          valueColor: AlwaysStoppedAnimation<Color>(
+                                            badge.isUnlocked ? primaryColor : primaryColor.withValues(alpha: 0.4),
                                           ),
                                         ),
                                       ),
-                                  ],
-                                ),
-                                AppSpacing.gapH4,
-                                Text(
-                                  badge.description,
-                                  style: AppTypography.bodySmall.copyWith(
-                                    color: badge.isUnlocked ? AppColors.textSecondary : AppColors.textMuted,
+                                      AppSpacing.gapH4,
+                                      Text(
+                                        '${badge.currentValue} / ${badge.requiredValue}',
+                                        style: theme.textTheme.labelSmall?.copyWith(
+                                          color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                ),
-                                AppSpacing.gapH8,
-                                ClipRRect(
-                                  borderRadius: AppSpacing.borderRadiusFull,
-                                  child: LinearProgressIndicator(
-                                    value: badge.progress,
-                                    minHeight: 6,
-                                    backgroundColor: AppColors.border,
-                                    valueColor: AlwaysStoppedAnimation<Color>(
-                                      badge.isUnlocked ? AppColors.secondary : AppColors.primaryDark,
-                                    ),
-                                  ),
-                                ),
-                                AppSpacing.gapH4,
-                                Text(
-                                  '${badge.currentValue} / ${badge.requiredValue}',
-                                  style: AppTypography.labelSmall.copyWith(color: AppColors.textMuted),
                                 ),
                               ],
                             ),
                           ),
-                        ],
-                      ),
+                        );
+                      }).toList(),
                     ),
-                  );
-                }).toList(),
-              ),
 
-              AppSpacing.gapH32,
+                    AppSpacing.gapH32,
+                  ],
+                ),
+              ),
             ],
           );
         },

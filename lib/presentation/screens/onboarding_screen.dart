@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../../core/constants/theme/app_colors.dart';
-import '../../core/constants/theme/app_shadows.dart';
 import '../../core/constants/theme/app_spacing.dart';
-import '../../core/constants/theme/app_typography.dart';
 import '../widgets/app_card.dart';
 import '../widgets/app_page_scaffold.dart';
 import '../widgets/app_primary_button.dart';
@@ -44,6 +41,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final primaryColor = theme.colorScheme.primary;
+
     return AppPageScaffold(
       isScrollable: false,
       applySafeArea: true,
@@ -52,18 +52,28 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         children: [
           // Header with Skip Button on every page
           Padding(
-            padding: const EdgeInsets.only(left: AppSpacing.lg, right: AppSpacing.lg, top: AppSpacing.sm),
+            padding: const EdgeInsets.only(
+              left: AppSpacing.lg,
+              right: AppSpacing.lg,
+              top: AppSpacing.sm,
+            ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 // Mini Logo indicator
                 Row(
                   children: [
-                    const Icon(Icons.wb_sunny_rounded, color: AppColors.secondary, size: 24),
+                    Icon(
+                      Icons.wb_sunny_rounded,
+                      color: primaryColor,
+                      size: 24,
+                    ),
                     AppSpacing.gapW8,
                     Text(
                       'WakeWise',
-                      style: AppTypography.headlineSmall.copyWith(color: AppColors.textPrimary),
+                      style: theme.textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ],
                 ),
@@ -72,7 +82,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   onPressed: _onSkipPressed,
                   child: Text(
                     'Skip',
-                    style: AppTypography.labelLarge.copyWith(color: AppColors.textSecondary),
+                    style: theme.textTheme.labelLarge?.copyWith(
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                    ),
                   ),
                 ),
               ],
@@ -86,10 +98,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               onPageChanged: (index) {
                 setState(() => _currentPage = index);
               },
-              children: [
-                const _OnboardingPageOne(),
-                const _OnboardingPageTwo(),
-                const _OnboardingPageThree(),
+              children: const [
+                _OnboardingPageOne(),
+                _OnboardingPageTwo(),
+                _OnboardingPageThree(),
               ],
             ),
           ),
@@ -111,8 +123,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       width: _currentPage == index ? 24 : 8,
                       decoration: BoxDecoration(
                         color: _currentPage == index
-                            ? AppColors.secondary
-                            : AppColors.borderFocused,
+                            ? primaryColor
+                            : theme.colorScheme.outline.withValues(alpha: 0.3),
                         borderRadius: BorderRadius.circular(4),
                       ),
                     ),
@@ -147,6 +159,9 @@ class _OnboardingPageOne extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final primaryColor = theme.colorScheme.primary;
+
     return Padding(
       padding: AppSpacing.pagePadding,
       child: Center(
@@ -155,81 +170,103 @@ class _OnboardingPageOne extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-          // Sunrise Alarm Illustration Card
-          Container(
-            width: 220,
-            height: 220,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: AppColors.cardAccentGradient,
-              boxShadow: AppShadows.medium,
-              border: Border.all(color: AppColors.primaryLight, width: 2),
-            ),
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                Container(
-                  width: 170,
-                  height: 170,
-                  decoration: const BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: AppColors.surface,
+              // Sunrise Alarm Illustration Card
+              Container(
+                width: 220,
+                height: 220,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: LinearGradient(
+                    colors: [
+                      primaryColor.withValues(alpha: 0.2),
+                      primaryColor.withValues(alpha: 0.05),
+                    ],
                   ),
-                ),
-                const Icon(
-                  Icons.wb_sunny_rounded,
-                  size: 90,
-                  color: AppColors.primary,
-                ),
-                Positioned(
-                  bottom: 30,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: AppColors.secondary,
-                      borderRadius: AppSpacing.borderRadiusFull,
-                      boxShadow: AppShadows.soft,
+                  border: Border.all(
+                    color: primaryColor.withValues(alpha: 0.3),
+                    width: 2,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: primaryColor.withValues(alpha: 0.15),
+                      blurRadius: 20,
+                      spreadRadius: 2,
                     ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(Icons.alarm, color: Colors.white, size: 16),
-                        AppSpacing.gapW4,
-                        Text(
-                          '07:00 AM',
-                          style: AppTypography.labelSmall.copyWith(color: Colors.white),
+                  ],
+                ),
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    Container(
+                      width: 170,
+                      height: 170,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: theme.colorScheme.surface,
+                      ),
+                    ),
+                    Icon(
+                      Icons.wb_sunny_rounded,
+                      size: 90,
+                      color: primaryColor,
+                    ),
+                    Positioned(
+                      bottom: 30,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 6,
                         ),
-                      ],
+                        decoration: BoxDecoration(
+                          color: primaryColor,
+                          borderRadius: AppSpacing.borderRadiusFull,
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.alarm, color: Colors.white, size: 16),
+                            AppSpacing.gapW4,
+                            Text(
+                              '07:00 AM',
+                              style: theme.textTheme.labelSmall?.copyWith(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
-                  ),
+                  ],
                 ),
-              ],
-            ),
-          ),
-          AppSpacing.gapH32,
+              ),
+              AppSpacing.gapH32,
 
-          Text(
-            'Welcome to WakeWise',
-            style: AppTypography.displayMedium,
-            textAlign: TextAlign.center,
+              Text(
+                'Welcome to WakeWise',
+                style: theme.textTheme.displayMedium,
+                textAlign: TextAlign.center,
+              ),
+              AppSpacing.gapH12,
+              Text(
+                'Wake smarter, not harder.',
+                style: theme.textTheme.headlineSmall?.copyWith(
+                  color: primaryColor,
+                  fontWeight: FontWeight.w600,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              AppSpacing.gapH12,
+              Text(
+                'Transform your morning routine with gentle sunrise lighting, AI news briefs, and engaging wake-up missions.',
+                style: theme.textTheme.bodyMedium,
+                textAlign: TextAlign.center,
+              ),
+            ],
           ),
-          AppSpacing.gapH12,
-          Text(
-            'Wake smarter, not harder.',
-            style: AppTypography.headlineSmall.copyWith(color: AppColors.secondaryDark),
-            textAlign: TextAlign.center,
-          ),
-          AppSpacing.gapH12,
-          Text(
-            'Transform your morning routine with gentle sunrise lighting, AI news briefs, and engaging wake-up missions.',
-            style: AppTypography.bodyMedium,
-            textAlign: TextAlign.center,
-          ),
-        ],
+        ),
       ),
-    ),
-  ),
-);
+    );
   }
 }
 
@@ -239,6 +276,9 @@ class _OnboardingPageTwo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final primaryColor = theme.colorScheme.primary;
+
     final challenges = [
       {'icon': Icons.calculate_rounded, 'name': 'Math', 'desc': 'Solve equations to snooze'},
       {'icon': Icons.camera_alt_rounded, 'name': 'Camera', 'desc': 'Snap a photo of your sink'},
@@ -250,17 +290,18 @@ class _OnboardingPageTwo extends StatelessWidget {
     return Padding(
       padding: AppSpacing.pagePadding,
       child: SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
         child: Column(
           children: [
             Text(
               'Challenge-Based Alarms',
-              style: AppTypography.displaySmall,
+              style: theme.textTheme.displaySmall,
               textAlign: TextAlign.center,
             ),
             AppSpacing.gapH8,
             Text(
               'Guaranteed to wake your brain up before turning off.',
-              style: AppTypography.bodyMedium,
+              style: theme.textTheme.bodyMedium,
               textAlign: TextAlign.center,
             ),
             AppSpacing.gapH24,
@@ -271,19 +312,23 @@ class _OnboardingPageTwo extends StatelessWidget {
                 return Padding(
                   padding: const EdgeInsets.only(bottom: AppSpacing.sm),
                   child: AppCard(
-                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.md,
+                      vertical: AppSpacing.sm,
+                    ),
+                    borderRadius: AppSpacing.radiusLg,
                     child: Row(
                       children: [
                         Container(
                           width: 44,
                           height: 44,
                           decoration: BoxDecoration(
-                            color: AppColors.primaryLight.withValues(alpha: 0.4),
+                            color: primaryColor.withValues(alpha: 0.15),
                             borderRadius: AppSpacing.borderRadiusMd,
                           ),
                           child: Icon(
                             item['icon'] as IconData,
-                            color: AppColors.secondaryDark,
+                            color: primaryColor,
                             size: 24,
                           ),
                         ),
@@ -294,18 +339,18 @@ class _OnboardingPageTwo extends StatelessWidget {
                             children: [
                               Text(
                                 item['name'] as String,
-                                style: AppTypography.titleLarge,
+                                style: theme.textTheme.titleLarge,
                               ),
                               Text(
                                 item['desc'] as String,
-                                style: AppTypography.bodySmall,
+                                style: theme.textTheme.bodySmall,
                               ),
                             ],
                           ),
                         ),
-                        const Icon(
+                        Icon(
                           Icons.chevron_right_rounded,
-                          color: AppColors.textMuted,
+                          color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
                         ),
                       ],
                     ),
@@ -326,6 +371,9 @@ class _OnboardingPageThree extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final primaryColor = theme.colorScheme.primary;
+
     return Padding(
       padding: AppSpacing.pagePadding,
       child: Center(
@@ -334,22 +382,27 @@ class _OnboardingPageThree extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              AppCard.accent(
+              AppCard(
+                borderRadius: AppSpacing.radiusXl,
                 child: Column(
                   children: [
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Icon(Icons.local_fire_department_rounded, color: AppColors.secondary, size: 40),
+                        Icon(
+                          Icons.local_fire_department_rounded,
+                          color: primaryColor,
+                          size: 40,
+                        ),
                         AppSpacing.gapW8,
                         Text(
                           '7 Day Streak!',
-                          style: AppTypography.displayMedium.copyWith(color: AppColors.textPrimary),
+                          style: theme.textTheme.displayMedium,
                         ),
                       ],
                     ),
                     AppSpacing.gapH16,
-                    Row(
+                    const Row(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
                         _FeatureBadge(
@@ -371,13 +424,13 @@ class _OnboardingPageThree extends StatelessWidget {
 
               Text(
                 'Streaks, XP & Analytics',
-                style: AppTypography.displaySmall,
+                style: theme.textTheme.displaySmall,
                 textAlign: TextAlign.center,
               ),
               AppSpacing.gapH12,
               Text(
                 'Build consistent morning habits, earn XP rewards, and track your sleep consistency over time.',
-                style: AppTypography.bodyMedium,
+                style: theme.textTheme.bodyMedium,
                 textAlign: TextAlign.center,
               ),
             ],
@@ -401,20 +454,22 @@ class _FeatureBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final primaryColor = theme.colorScheme.primary;
+
     return Column(
       children: [
         Container(
           padding: AppSpacing.paddingAllSm,
-          decoration: const BoxDecoration(
-            color: AppColors.surface,
+          decoration: BoxDecoration(
+            color: primaryColor.withValues(alpha: 0.12),
             shape: BoxShape.circle,
-            boxShadow: AppShadows.soft,
           ),
-          child: Icon(icon, color: AppColors.secondary, size: 28),
+          child: Icon(icon, color: primaryColor, size: 28),
         ),
         AppSpacing.gapH8,
-        Text(title, style: AppTypography.titleLarge),
-        Text(subtitle, style: AppTypography.bodySmall),
+        Text(title, style: theme.textTheme.titleLarge),
+        Text(subtitle, style: theme.textTheme.bodySmall),
       ],
     );
   }

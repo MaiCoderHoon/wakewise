@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../../../core/constants/theme/app_colors.dart';
-import '../../../core/constants/theme/app_shadows.dart';
 import '../../../core/constants/theme/app_spacing.dart';
-import '../../../core/constants/theme/app_typography.dart';
 import '../../../domain/challenges/entities/challenge_difficulty.dart';
 import '../../widgets/app_card.dart';
+import '../../widgets/app_hero_header.dart';
 import '../../widgets/app_page_scaffold.dart';
 import '../../widgets/app_primary_button.dart';
 
@@ -60,37 +58,40 @@ class _ChallengeSelectionScreenState extends State<ChallengeSelectionScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final primaryColor = theme.colorScheme.primary;
+
     return AppPageScaffold(
       isScrollable: true,
+      padding: EdgeInsets.zero,
       appBar: AppBar(
         title: const Text('Challenge Engine'),
       ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header Hero Card
-          AppCard.accent(
+          // Header Hero Container
+          AppHeroHeader(
             child: Row(
               children: [
                 Container(
                   padding: AppSpacing.paddingAllMd,
-                  decoration: const BoxDecoration(
-                    color: AppColors.surface,
+                  decoration: BoxDecoration(
+                    color: primaryColor.withValues(alpha: 0.15),
                     shape: BoxShape.circle,
-                    boxShadow: AppShadows.soft,
                   ),
-                  child: const Icon(Icons.extension_rounded, color: AppColors.secondary, size: 32),
+                  child: Icon(Icons.extension_rounded, color: primaryColor, size: 32),
                 ),
                 AppSpacing.gapW16,
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Wake-Up Missions', style: AppTypography.headlineMedium),
+                      Text('Wake-Up Missions', style: theme.textTheme.headlineMedium),
                       AppSpacing.gapH4,
                       Text(
                         'Select a challenge type and difficulty level to test your wake-up routine.',
-                        style: AppTypography.bodySmall,
+                        style: theme.textTheme.bodySmall,
                       ),
                     ],
                   ),
@@ -101,117 +102,130 @@ class _ChallengeSelectionScreenState extends State<ChallengeSelectionScreen> {
 
           AppSpacing.gapH24,
 
-          // Difficulty Selector
-          Text('Select Difficulty', style: AppTypography.headlineSmall),
-          AppSpacing.gapH12,
-          Row(
-            children: ChallengeDifficulty.values.map((diff) {
-              final isSelected = _selectedDifficulty == diff;
-              return Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                  child: GestureDetector(
-                    onTap: () => setState(() => _selectedDifficulty = diff),
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
-                      padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
-                      decoration: BoxDecoration(
-                        color: isSelected ? AppColors.primary : AppColors.surface,
-                        borderRadius: AppSpacing.borderRadiusLg,
-                        border: Border.all(
-                          color: isSelected ? AppColors.primaryDark : AppColors.border,
-                          width: isSelected ? 1.5 : 1.0,
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Difficulty Selector
+                Text('Select Difficulty', style: theme.textTheme.headlineSmall),
+                AppSpacing.gapH12,
+                Row(
+                  children: ChallengeDifficulty.values.map((diff) {
+                    final isSelected = _selectedDifficulty == diff;
+                    return Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                        child: GestureDetector(
+                          onTap: () => setState(() => _selectedDifficulty = diff),
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 200),
+                            padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+                            decoration: BoxDecoration(
+                              color: isSelected ? primaryColor : theme.colorScheme.surface,
+                              borderRadius: AppSpacing.borderRadiusLg,
+                              border: Border.all(
+                                color: isSelected ? primaryColor : theme.colorScheme.outline.withValues(alpha: 0.4),
+                                width: isSelected ? 1.5 : 1.0,
+                              ),
+                            ),
+                            child: Column(
+                              children: [
+                                Text(
+                                  diff.displayName,
+                                  style: theme.textTheme.labelLarge?.copyWith(
+                                    color: isSelected ? Colors.white : theme.colorScheme.onSurface,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                AppSpacing.gapH4,
+                                Text(
+                                  '+${diff.xpMultiplier} XP',
+                                  style: theme.textTheme.labelSmall?.copyWith(
+                                    color: isSelected
+                                        ? Colors.white.withValues(alpha: 0.9)
+                                        : theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
-                        boxShadow: isSelected ? AppShadows.soft : null,
                       ),
-                      child: Column(
-                        children: [
-                          Text(
-                            diff.displayName,
-                            style: AppTypography.labelLarge.copyWith(
-                              color: isSelected ? AppColors.textOnPrimary : AppColors.textPrimary,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          AppSpacing.gapH4,
-                          Text(
-                            '+${diff.xpMultiplier} XP',
-                            style: AppTypography.labelSmall.copyWith(
-                              color: isSelected ? AppColors.textOnPrimary : AppColors.textSecondary,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
+                    );
+                  }).toList(),
                 ),
-              );
-            }).toList(),
-          ),
 
-          AppSpacing.gapH24,
+                AppSpacing.gapH24,
 
-          // Challenge Selection Cards
-          Text('Select Challenge', style: AppTypography.headlineSmall),
-          AppSpacing.gapH12,
-          Column(
-            children: challenges.map((item) {
-              final key = item['key'] as String;
-              final isSelected = _selectedChallengeKey == key;
-              return Padding(
-                padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-                child: AppCard(
-                  onTap: () => setState(() => _selectedChallengeKey = key),
-                  padding: AppSpacing.paddingAllMd,
-                  border: Border.all(
-                    color: isSelected ? AppColors.secondary : AppColors.border,
-                    width: isSelected ? 2.0 : 1.0,
-                  ),
-                  backgroundColor: isSelected ? AppColors.surfaceSubtle : AppColors.surface,
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: AppSpacing.paddingAllSm,
-                        decoration: BoxDecoration(
-                          color: isSelected ? AppColors.primary : AppColors.surfaceSubtle,
-                          shape: BoxShape.circle,
+                // Challenge Selection Cards
+                Text('Select Challenge', style: theme.textTheme.headlineSmall),
+                AppSpacing.gapH12,
+                Column(
+                  children: challenges.map((item) {
+                    final key = item['key'] as String;
+                    final isSelected = _selectedChallengeKey == key;
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                      child: AppCard(
+                        onTap: () => setState(() => _selectedChallengeKey = key),
+                        padding: AppSpacing.paddingAllMd,
+                        borderRadius: AppSpacing.radiusLg,
+                        border: Border.all(
+                          color: isSelected ? primaryColor : theme.colorScheme.outline.withValues(alpha: 0.4),
+                          width: isSelected ? 2.0 : 1.0,
                         ),
-                        child: Icon(
-                          item['icon'] as IconData,
-                          color: isSelected ? AppColors.textOnPrimary : AppColors.secondary,
-                          size: 26,
-                        ),
-                      ),
-                      AppSpacing.gapW16,
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                        child: Row(
                           children: [
-                            Text(item['title'] as String, style: AppTypography.titleLarge),
-                            AppSpacing.gapH4,
-                            Text(item['desc'] as String, style: AppTypography.bodySmall),
+                            Container(
+                              padding: AppSpacing.paddingAllSm,
+                              decoration: BoxDecoration(
+                                color: isSelected ? primaryColor : primaryColor.withValues(alpha: 0.12),
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                item['icon'] as IconData,
+                                color: isSelected ? Colors.white : primaryColor,
+                                size: 26,
+                              ),
+                            ),
+                            AppSpacing.gapW16,
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(item['title'] as String, style: theme.textTheme.titleLarge),
+                                  AppSpacing.gapH4,
+                                  Text(item['desc'] as String, style: theme.textTheme.bodySmall),
+                                ],
+                              ),
+                            ),
+                            if (isSelected)
+                              Icon(
+                                Icons.check_circle_rounded,
+                                color: primaryColor,
+                                size: 24,
+                              ),
                           ],
                         ),
                       ),
-                      if (isSelected)
-                        const Icon(Icons.check_circle_rounded, color: AppColors.secondary, size: 24),
-                    ],
-                  ),
+                    );
+                  }).toList(),
                 ),
-              );
-            }).toList(),
+
+                AppSpacing.gapH32,
+
+                // Launch Challenge Button
+                AppPrimaryButton(
+                  label: 'Start Challenge Test',
+                  icon: Icons.play_arrow_rounded,
+                  onPressed: _onLaunchChallenge,
+                ),
+
+                AppSpacing.gapH32,
+              ],
+            ),
           ),
-
-          AppSpacing.gapH32,
-
-          // Launch Challenge Button
-          AppPrimaryButton(
-            label: 'Start Challenge Test',
-            icon: Icons.play_arrow_rounded,
-            onPressed: _onLaunchChallenge,
-          ),
-
-          AppSpacing.gapH32,
         ],
       ),
     );

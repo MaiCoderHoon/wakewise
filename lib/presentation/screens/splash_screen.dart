@@ -1,13 +1,10 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../../core/constants/theme/app_colors.dart';
-import '../../core/constants/theme/app_shadows.dart';
 import '../../core/constants/theme/app_spacing.dart';
-import '../../core/constants/theme/app_typography.dart';
 
 /// WakeWise Splash Screen
-/// Centered logo, app name, tagline, warm sunrise gradient, scale & fade animation,
+/// Centered logo, app name, tagline, dynamic circadian theme background, scale & fade animation,
 /// and automatic 2-second navigation to onboarding.
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -62,12 +59,24 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final primaryColor = theme.colorScheme.primary;
+
     return Scaffold(
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: Container(
         width: double.infinity,
         height: double.infinity,
-        decoration: const BoxDecoration(
-          gradient: AppColors.backgroundGradient,
+        decoration: BoxDecoration(
+          color: theme.scaffoldBackgroundColor,
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              primaryColor.withValues(alpha: 0.15),
+              theme.scaffoldBackgroundColor,
+            ],
+          ),
         ),
         child: Center(
           child: AnimatedBuilder(
@@ -80,28 +89,39 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      // Centered Logo Badge with glowing sunrise halo
+                      // Centered Logo Badge with glowing halo
                       Container(
-                        width: 120,
-                        height: 120,
+                        width: 124,
+                        height: 124,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          gradient: AppColors.primaryGradient,
-                          boxShadow: AppShadows.floating,
+                          gradient: LinearGradient(
+                            colors: [
+                              primaryColor,
+                              theme.colorScheme.secondary,
+                            ],
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: primaryColor.withValues(alpha: 0.35),
+                              blurRadius: 24,
+                              spreadRadius: 4,
+                            ),
+                          ],
                         ),
                         child: Center(
                           child: Container(
-                            width: 104,
-                            height: 104,
-                            decoration: const BoxDecoration(
+                            width: 106,
+                            height: 106,
+                            decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: AppColors.surface,
+                              color: theme.colorScheme.surface,
                             ),
-                            child: const Center(
+                            child: Center(
                               child: Icon(
                                 Icons.wb_sunny_rounded,
-                                size: 56,
-                                color: AppColors.secondary,
+                                size: 58,
+                                color: primaryColor,
                               ),
                             ),
                           ),
@@ -111,10 +131,9 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                       // App Name
                       Text(
                         'WakeWise',
-                        style: AppTypography.displayLarge.copyWith(
+                        style: theme.textTheme.displayLarge?.copyWith(
                           fontSize: 40,
                           fontWeight: FontWeight.bold,
-                          color: AppColors.textPrimary,
                           letterSpacing: -1.0,
                         ),
                       ),
@@ -122,8 +141,8 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                       // Tagline
                       Text(
                         'Wake Smarter.',
-                        style: AppTypography.titleLarge.copyWith(
-                          color: AppColors.secondaryDark,
+                        style: theme.textTheme.titleLarge?.copyWith(
+                          color: theme.colorScheme.secondary,
                           fontWeight: FontWeight.w600,
                           letterSpacing: 0.2,
                         ),

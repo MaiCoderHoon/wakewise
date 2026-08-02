@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import '../../core/constants/theme/app_colors.dart';
 import '../../core/constants/theme/app_spacing.dart';
 
 /// WakeWise Reusable Page Scaffold
-/// Provides consistent page structure with soft cream sunrise gradient background,
+/// Provides consistent page structure with circadian background gradient,
 /// safe area inset handling, and generous responsive padding.
 class AppPageScaffold extends StatelessWidget {
   final Widget body;
@@ -15,6 +14,7 @@ class AppPageScaffold extends StatelessWidget {
   final EdgeInsetsGeometry padding;
   final bool applySafeArea;
   final Widget? header;
+  final LinearGradient? backgroundGradient;
 
   const AppPageScaffold({
     super.key,
@@ -27,10 +27,13 @@ class AppPageScaffold extends StatelessWidget {
     this.padding = AppSpacing.pagePadding,
     this.applySafeArea = true,
     this.header,
+    this.backgroundGradient,
   });
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     Widget content = body;
 
     if (header != null) {
@@ -42,9 +45,7 @@ class AppPageScaffold extends StatelessWidget {
           Expanded(child: body),
         ],
       );
-    }
-
-    if (isScrollable && header == null) {
+    } else if (isScrollable) {
       content = SingleChildScrollView(
         physics: const BouncingScrollPhysics(),
         padding: padding,
@@ -57,18 +58,19 @@ class AppPageScaffold extends StatelessWidget {
       );
     }
 
-    if (applySafeArea) {
+    if (applySafeArea && header == null) {
       content = SafeArea(child: content);
     }
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: appBar,
       body: Container(
         width: double.infinity,
         height: double.infinity,
-        decoration: const BoxDecoration(
-          gradient: AppColors.backgroundGradient,
+        decoration: BoxDecoration(
+          color: theme.scaffoldBackgroundColor,
+          gradient: backgroundGradient,
         ),
         child: content,
       ),

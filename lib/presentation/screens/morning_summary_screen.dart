@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../../core/constants/theme/app_colors.dart';
-import '../../core/constants/theme/app_shadows.dart';
 import '../../core/constants/theme/app_spacing.dart';
-import '../../core/constants/theme/app_typography.dart';
 import '../widgets/app_card.dart';
 import '../widgets/app_page_scaffold.dart';
 import '../widgets/app_primary_button.dart';
@@ -23,6 +20,9 @@ class MorningSummaryScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final primaryColor = theme.colorScheme.primary;
+
     return AppPageScaffold(
       isScrollable: true,
       appBar: AppBar(
@@ -37,21 +37,29 @@ class MorningSummaryScreen extends StatelessWidget {
             height: 110,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              gradient: AppColors.primaryGradient,
-              boxShadow: AppShadows.floating,
+              gradient: LinearGradient(
+                colors: [primaryColor, theme.colorScheme.secondary],
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: primaryColor.withValues(alpha: 0.35),
+                  blurRadius: 24,
+                  spreadRadius: 4,
+                ),
+              ],
             ),
             child: const Center(
-              child: Icon(Icons.wb_sunny_rounded, size: 56, color: AppColors.textOnPrimary),
+              child: Icon(Icons.wb_sunny_rounded, size: 56, color: Colors.white),
             ),
           ),
 
           AppSpacing.gapH24,
 
-          Text('Good Morning!', style: AppTypography.displayMedium),
+          Text('Good Morning!', style: theme.textTheme.displayMedium),
           AppSpacing.gapH4,
           Text(
             'Mission completed cleanly. Your brain is wide awake!',
-            style: AppTypography.bodyLarge,
+            style: theme.textTheme.bodyLarge,
             textAlign: TextAlign.center,
           ),
 
@@ -64,26 +72,26 @@ class MorningSummaryScreen extends StatelessWidget {
               children: [
                 Column(
                   children: [
-                    const Icon(Icons.bolt_rounded, color: AppColors.secondary, size: 28),
+                    Icon(Icons.bolt_rounded, color: primaryColor, size: 28),
                     AppSpacing.gapH4,
-                    Text('+$earnedXp XP', style: AppTypography.titleLarge),
-                    Text('Reward', style: AppTypography.bodySmall),
+                    Text('+$earnedXp XP', style: theme.textTheme.titleLarge),
+                    Text('Reward', style: theme.textTheme.bodySmall),
                   ],
                 ),
                 Column(
                   children: [
-                    const Icon(Icons.local_fire_department_rounded, color: AppColors.secondary, size: 28),
+                    Icon(Icons.local_fire_department_rounded, color: primaryColor, size: 28),
                     AppSpacing.gapH4,
-                    Text('$streakDays Days', style: AppTypography.titleLarge),
-                    Text('Streak 🔥', style: AppTypography.bodySmall),
+                    Text('$streakDays Days', style: theme.textTheme.titleLarge),
+                    Text('Streak 🔥', style: theme.textTheme.bodySmall),
                   ],
                 ),
                 Column(
                   children: [
-                    const Icon(Icons.timer_rounded, color: AppColors.secondaryDark, size: 28),
+                    Icon(Icons.timer_rounded, color: primaryColor, size: 28),
                     AppSpacing.gapH4,
-                    Text('${durationSeconds}s', style: AppTypography.titleLarge),
-                    Text('Wake Time', style: AppTypography.bodySmall),
+                    Text('${durationSeconds}s', style: theme.textTheme.titleLarge),
+                    Text('Wake Time', style: theme.textTheme.bodySmall),
                   ],
                 ),
               ],
@@ -94,20 +102,21 @@ class MorningSummaryScreen extends StatelessWidget {
 
           // AI Morning Brief Preview Card
           AppCard(
+            borderRadius: AppSpacing.radiusLg,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
                   children: [
-                    const Icon(Icons.auto_awesome_rounded, color: AppColors.secondary, size: 20),
+                    Icon(Icons.auto_awesome_rounded, color: primaryColor, size: 20),
                     AppSpacing.gapW8,
-                    Text('AI Morning Brief', style: AppTypography.titleMedium),
+                    Text('AI Morning Brief', style: theme.textTheme.titleMedium),
                   ],
                 ),
                 AppSpacing.gapH8,
                 Text(
                   'Today is expected to be sunny and 24°C. You have 3 alarms active for this week. Keep up your awesome morning routine!',
-                  style: AppTypography.bodySmall,
+                  style: theme.textTheme.bodySmall,
                 ),
               ],
             ),

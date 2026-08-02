@@ -2,10 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import '../../core/constants/theme/app_colors.dart';
-import '../../core/constants/theme/app_shadows.dart';
 import '../../core/constants/theme/app_spacing.dart';
-import '../../core/constants/theme/app_typography.dart';
 import '../../domain/entities/alarm.dart';
 import '../blocs/alarm/alarm_bloc.dart';
 import '../blocs/alarm/alarm_event.dart';
@@ -13,8 +10,10 @@ import '../blocs/alarm/alarm_state.dart';
 import '../blocs/stats/stats_bloc.dart';
 import '../blocs/stats/stats_state.dart';
 import '../widgets/app_card.dart';
+import '../widgets/app_hero_header.dart';
 import '../widgets/app_page_scaffold.dart';
 import '../widgets/app_primary_button.dart';
+import '../widgets/app_quick_action_row.dart';
 
 /// WakeWise Home Screen UI & Alarm Management Dashboard
 class HomeScreen extends StatefulWidget {
@@ -28,14 +27,35 @@ class _HomeScreenState extends State<HomeScreen> {
   (String greeting, String emoji) _getGreetingInfo(DateTime now) {
     final hour = now.hour;
     if (hour >= 5 && hour < 12) return ('Good Morning', '🌅');
-    if (hour >= 12 && hour < 17) return ('Good Afternoon', '🌤️');
+    if (hour >= 12 && hour < 17) return ('Good Afternoon', '☀️');
     if (hour >= 17 && hour < 21) return ('Good Evening', '🌇');
     return ('Good Night', '🌙');
   }
 
   String _formattedDate(DateTime now) {
-    const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const days = [
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday',
+      'Saturday',
+      'Sunday',
+    ];
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
     return '${days[now.weekday - 1]}, ${months[now.month - 1]} ${now.day}';
   }
 
@@ -43,9 +63,12 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final now = DateTime.now();
     final (greetingText, emoji) = _getGreetingInfo(now);
+    final theme = Theme.of(context);
+    final primaryColor = theme.colorScheme.primary;
 
     return AppPageScaffold(
       isScrollable: true,
+      padding: EdgeInsets.zero,
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           HapticFeedback.lightImpact();
@@ -57,199 +80,251 @@ class _HomeScreenState extends State<HomeScreen> {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── Greeting & Current Date Header ─────────────────────────────
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Text(
-                        greetingText,
-                        style: AppTypography.displayMedium,
+          // ── Curved Hero Header ──────────────────────────────────────────
+          AppHeroHeader(
+            topRow: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Text(
+                          greetingText,
+                          style: theme.textTheme.displayMedium,
+                        ),
+                        AppSpacing.gapW8,
+                        Text(emoji, style: const TextStyle(fontSize: 24)),
+                      ],
+                    ),
+                    AppSpacing.gapH4,
+                    Text(
+                      _formattedDate(now),
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        color: theme.colorScheme.onSurface.withValues(
+                          alpha: 0.6,
+                        ),
                       ),
-                      AppSpacing.gapW8,
-                      Text(emoji, style: const TextStyle(fontSize: 24)),
-                    ],
-                  ),
-                  AppSpacing.gapH4,
-                  Text(
-                    _formattedDate(now),
-                    style: AppTypography.titleMedium.copyWith(color: AppColors.textSecondary),
-                  ),
-                ],
+                    ),
+                  ],
+                ),
+                // Action Buttons (Analytics & Achievements)
+                Row(
+                  children: [
+                    _HeaderIconButton(
+                      icon: Icons.insights_rounded,
+                      color: primaryColor,
+                      tooltip: 'Analytics',
+                      onPressed: () {
+                        HapticFeedback.lightImpact();
+                        context.push('/analytics');
+                      },
+                    ),
+                    AppSpacing.gapW8,
+                    _HeaderIconButton(
+                      icon: Icons.emoji_events_rounded,
+                      color: theme.colorScheme.secondary,
+                      tooltip: 'Achievements',
+                      onPressed: () {
+                        HapticFeedback.lightImpact();
+                        context.push('/achievements');
+                      },
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            child: BlocBuilder<AlarmBloc, AlarmState>(
+              builder: (context, state) {
+                Alarm? upcoming;
+                if (state is AlarmLoaded) {
+                  upcoming = state.upcomingAlarm;
+                }
+
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'NEXT ALARM',
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: primaryColor,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 1.2,
+                      ),
+                    ),
+                    AppSpacing.gapH4,
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.baseline,
+                      textBaseline: TextBaseline.alphabetic,
+                      children: [
+                        Text(
+                          upcoming != null ? upcoming.formattedTime : '--:--',
+                          style: theme.textTheme.displayLarge?.copyWith(
+                            fontSize: 48,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: -1.5,
+                          ),
+                        ),
+                        AppSpacing.gapW8,
+                        Text(
+                          upcoming != null ? upcoming.formattedPeriod : '',
+                          style: theme.textTheme.headlineMedium?.copyWith(
+                            color: primaryColor,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
+
+          AppSpacing.gapH16,
+
+          // ── Floating Quick Actions Row ─────────────────────────────────
+          AppQuickActionRow(
+            items: [
+              QuickActionItem(
+                icon: Icons.add_alarm_rounded,
+                label: 'Add Alarm',
+                onTap: () {
+                  HapticFeedback.lightImpact();
+                  context.push('/add-alarm');
+                },
               ),
-              // Action Buttons (Analytics & Achievements)
-              Row(
-                children: [
-                  _HeaderIconButton(
-                    icon: Icons.insights_rounded,
-                    color: AppColors.secondary,
-                    tooltip: 'Analytics',
-                    onPressed: () {
-                      HapticFeedback.lightImpact();
-                      context.push('/analytics');
-                    },
-                  ),
-                  AppSpacing.gapW8,
-                  _HeaderIconButton(
-                    icon: Icons.emoji_events_rounded,
-                    color: AppColors.primaryDark,
-                    tooltip: 'Achievements',
-                    onPressed: () {
-                      HapticFeedback.lightImpact();
-                      context.push('/achievements');
-                    },
-                  ),
-                ],
+              QuickActionItem(
+                icon: Icons.wb_sunny_rounded,
+                label: 'Quest',
+                badgeText: 'HOT',
+                onTap: () {
+                  HapticFeedback.lightImpact();
+                  context.push('/morning-quest');
+                },
+              ),
+              QuickActionItem(
+                icon: Icons.sports_esports_rounded,
+                label: 'Challenges',
+                onTap: () {
+                  HapticFeedback.lightImpact();
+                  context.push('/challenge-selection');
+                },
+              ),
+              QuickActionItem(
+                icon: Icons.insights_rounded,
+                label: 'Stats',
+                onTap: () {
+                  HapticFeedback.lightImpact();
+                  context.push('/analytics');
+                },
               ),
             ],
           ),
 
           AppSpacing.gapH24,
 
-          // ── Morning Quest Banner ───────────────────────────────────────
-          AppCard.primary(
-            child: Row(
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.2),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(Icons.wb_sunny_rounded, color: Colors.amber, size: 26),
-                ),
-                AppSpacing.gapW12,
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        '🌅 Morning Quest',
-                        style: AppTypography.titleMedium.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        'Conquer Math, Memory & Shake challenges!',
-                        style: AppTypography.bodySmall.copyWith(
-                          color: Colors.white.withValues(alpha: 0.9),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                AppSpacing.gapW8,
-                ElevatedButton(
-                  onPressed: () {
-                    HapticFeedback.lightImpact();
-                    context.push('/morning-quest');
+                // ── Real Alarms Dashboard via AlarmBloc ─────────────────
+                BlocBuilder<AlarmBloc, AlarmState>(
+                  builder: (context, state) {
+                    if (state is AlarmLoading) {
+                      return const _AlarmsLoadingShimmer();
+                    }
+
+                    if (state is AlarmLoaded) {
+                      final alarms = state.alarms;
+                      final upcoming = state.upcomingAlarm;
+
+                      if (alarms.isEmpty) {
+                        return _EmptyAlarmsState();
+                      }
+
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Hero Upcoming Alarm Card
+                          if (upcoming != null) ...[
+                            _HeroUpcomingAlarmCard(alarm: upcoming),
+                            AppSpacing.gapH24,
+                          ],
+
+                          // Alarms Header
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'Your Alarms',
+                                style: theme.textTheme.headlineMedium,
+                              ),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: primaryColor.withValues(alpha: 0.12),
+                                  borderRadius: AppSpacing.borderRadiusFull,
+                                ),
+                                child: Text(
+                                  '${alarms.length} Total',
+                                  style: theme.textTheme.labelSmall?.copyWith(
+                                    color: primaryColor,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          AppSpacing.gapH12,
+
+                          // Alarms List
+                          ListView.builder(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            itemCount: alarms.length,
+                            itemBuilder: (context, index) {
+                              final alarm = alarms[index];
+                              return Padding(
+                                padding: const EdgeInsets.only(
+                                  bottom: AppSpacing.sm,
+                                ),
+                                child: _AlarmListTile(alarm: alarm),
+                              );
+                            },
+                          ),
+
+                          AppSpacing.gapH24,
+                        ],
+                      );
+                    }
+
+                    return const SizedBox.shrink();
                   },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    foregroundColor: AppColors.secondary,
-                    shape: const StadiumBorder(),
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                    elevation: 0,
-                    minimumSize: const Size(0, 36),
-                  ),
-                  child: const Text('Start', style: TextStyle(fontWeight: FontWeight.bold)),
                 ),
+
+                // Today's Mission Card
+                const _TodaysMissionCard(),
+
+                AppSpacing.gapH24,
+
+                // Morning Streak Card
+                const _MorningStreakCard(),
+
+                AppSpacing.gapH24,
+
+                // Weather Card Placeholder
+                const _WeatherCard(),
+
+                AppSpacing.gapH48,
               ],
             ),
           ),
-
-          AppSpacing.gapH24,
-
-          // ── Real Alarms Dashboard via AlarmBloc ─────────────────────────
-          BlocBuilder<AlarmBloc, AlarmState>(
-            builder: (context, state) {
-              if (state is AlarmLoading) {
-                return const _AlarmsLoadingShimmer();
-              }
-
-              if (state is AlarmLoaded) {
-                final alarms = state.alarms;
-                final upcoming = state.upcomingAlarm;
-
-                if (alarms.isEmpty) {
-                  return _EmptyAlarmsState();
-                }
-
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Hero Upcoming Alarm Card
-                    if (upcoming != null) ...[
-                      _HeroUpcomingAlarmCard(alarm: upcoming),
-                      AppSpacing.gapH24,
-                    ],
-
-                    // Alarms Header
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text('Your Alarms', style: AppTypography.headlineMedium),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: AppColors.surfaceSubtle,
-                            borderRadius: AppSpacing.borderRadiusFull,
-                          ),
-                          child: Text(
-                            '${alarms.length} Total',
-                            style: AppTypography.labelSmall.copyWith(
-                              color: AppColors.textSecondary,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    AppSpacing.gapH12,
-
-                    // Alarms List
-                    ListView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: alarms.length,
-                      itemBuilder: (context, index) {
-                        final alarm = alarms[index];
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-                          child: _AlarmListTile(alarm: alarm),
-                        );
-                      },
-                    ),
-
-                    AppSpacing.gapH24,
-                  ],
-                );
-              }
-
-              return const SizedBox.shrink();
-            },
-          ),
-
-          // Today's Mission Card
-          const _TodaysMissionCard(),
-
-          AppSpacing.gapH24,
-
-          // Morning Streak Card
-          const _MorningStreakCard(),
-
-          AppSpacing.gapH24,
-
-          // Weather Card Placeholder
-          const _WeatherCard(),
-
-          AppSpacing.gapH48,
         ],
       ),
     );
@@ -272,6 +347,8 @@ class _HeaderIconButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Tooltip(
       message: tooltip,
       child: GestureDetector(
@@ -279,10 +356,11 @@ class _HeaderIconButton extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.all(9),
           decoration: BoxDecoration(
-            color: AppColors.surface,
+            color: theme.colorScheme.surface,
             shape: BoxShape.circle,
-            border: Border.all(color: AppColors.border),
-            boxShadow: AppShadows.soft,
+            border: Border.all(
+              color: theme.colorScheme.outline.withValues(alpha: 0.5),
+            ),
           ),
           child: Icon(icon, color: color, size: 22),
         ),
@@ -297,7 +375,7 @@ class _AlarmsLoadingShimmer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    return const Column(
       children: [
         _ShimmerTile(height: 140),
         AppSpacing.gapH12,
@@ -315,13 +393,17 @@ class _ShimmerTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Container(
       width: double.infinity,
       height: height,
       decoration: BoxDecoration(
-        color: AppColors.surfaceSubtle.withValues(alpha: 0.6),
+        color: theme.colorScheme.surface.withValues(alpha: 0.6),
         borderRadius: AppSpacing.borderRadiusLg,
-        border: Border.all(color: AppColors.border),
+        border: Border.all(
+          color: theme.colorScheme.outline.withValues(alpha: 0.3),
+        ),
       ),
     );
   }
@@ -335,110 +417,210 @@ class _HeroUpcomingAlarmCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final primaryColor = theme.colorScheme.primary;
+
     return AppCard.accent(
       onTap: () => context.push('/edit-alarm', extra: alarm),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      borderRadius: AppSpacing.radiusLg,
+      child: Stack(
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Row(
-                  children: [
-                    const Icon(Icons.access_time_filled_rounded, color: AppColors.secondary, size: 20),
-                    AppSpacing.gapW8,
-                    Expanded(
-                      child: Text(
-                        'NEXT UPCOMING ALARM',
-                        style: AppTypography.labelSmall.copyWith(
-                          color: AppColors.secondaryDark,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 0.5,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
+          // Subtle radial highlight behind the time for depth
+          Positioned.fill(
+            child: IgnorePointer(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  borderRadius: AppSpacing.borderRadiusXl,
+                  gradient: RadialGradient(
+                    center: const Alignment(-0.6, -0.2),
+                    radius: 0.95,
+                    colors: [
+                      primaryColor.withValues(alpha: 0.03),
+                      Colors.transparent,
+                    ],
+                  ),
                 ),
               ),
-              Switch.adaptive(
-                value: alarm.enabled,
-                onChanged: (val) {
-                  HapticFeedback.selectionClick();
-                  context.read<AlarmBloc>().add(ToggleAlarm(alarm.id));
-                },
-                activeTrackColor: AppColors.secondary,
-                thumbColor: WidgetStateProperty.all(Colors.white),
-              ),
-            ],
+            ),
           ),
-          AppSpacing.gapH8,
-
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.center,
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Top Bar: Header label & Visually secondary toggle
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          color: primaryColor.withValues(alpha: 0.12),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          Icons.access_time_filled_rounded,
+                          color: primaryColor,
+                          size: 16,
+                        ),
+                      ),
+                      AppSpacing.gapW8,
+                      Text(
+                        'NEXT UPCOMING ALARM',
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: primaryColor,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.8,
+                          fontSize: 11,
+                        ),
+                      ),
+                    ],
+                  ),
+                  Transform.scale(
+                    scale: 0.85,
+                    child: Switch.adaptive(
+                      value: alarm.enabled,
+                      onChanged: (val) {
+                        HapticFeedback.selectionClick();
+                        context.read<AlarmBloc>().add(ToggleAlarm(alarm.id));
+                      },
+                      activeTrackColor: primaryColor,
+                      thumbColor: WidgetStateProperty.all(Colors.white),
+                    ),
+                  ),
+                ],
+              ),
+
+              AppSpacing.gapH8,
+
+              // Dominant Alarm Time Display
               Row(
                 crossAxisAlignment: CrossAxisAlignment.baseline,
                 textBaseline: TextBaseline.alphabetic,
                 children: [
                   Text(
                     alarm.formattedTime,
-                    style: AppTypography.displayLarge.copyWith(
-                      fontSize: 52,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.textPrimary,
+                    style: theme.textTheme.displayLarge?.copyWith(
+                      fontSize: 60,
+                      fontWeight: FontWeight.w900,
+                      height: 1.0,
+                      letterSpacing: -2.0,
+                      color: theme.colorScheme.onSurface,
                     ),
                   ),
                   AppSpacing.gapW8,
                   Text(
                     alarm.formattedPeriod,
-                    style: AppTypography.headlineMedium.copyWith(
-                      color: AppColors.secondaryDark,
-                      fontWeight: FontWeight.bold,
+                    style: theme.textTheme.headlineLarge?.copyWith(
+                      fontSize: 26,
+                      color: primaryColor,
+                      fontWeight: FontWeight.w800,
                     ),
                   ),
                 ],
               ),
-              Flexible(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: AppColors.surface,
-                    borderRadius: AppSpacing.borderRadiusFull,
-                    border: Border.all(color: AppColors.border),
-                  ),
-                  child: Text(
-                    alarm.label,
-                    style: AppTypography.labelSmall.copyWith(color: AppColors.textSecondary),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ),
-            ],
-          ),
 
-          AppSpacing.gapH16,
-          const Divider(),
-          AppSpacing.gapH12,
+              AppSpacing.gapH4,
 
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Text(
-                  alarm.formattedRepeatDays,
-                  style: AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w600),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              AppSpacing.gapW8,
+              // Alarm Label directly beneath time
               Row(
                 children: [
-                  Icon(alarm.challengeType.icon, size: 16, color: AppColors.secondary),
+                  Icon(
+                    Icons.label_outline_rounded,
+                    size: 14,
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                  ),
                   AppSpacing.gapW4,
-                  Text(alarm.challengeType.displayName, style: AppTypography.labelSmall),
+                  Expanded(
+                    child: Text(
+                      alarm.label,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        color: theme.colorScheme.onSurface.withValues(
+                          alpha: 0.85,
+                        ),
+                        fontWeight: FontWeight.w600,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+
+              AppSpacing.gapH16,
+
+              // Subtle separator line with reduced visual weight
+              Divider(
+                height: 1,
+                thickness: 1,
+                color: theme.colorScheme.outline.withValues(alpha: 0.12),
+              ),
+
+              AppSpacing.gapH12,
+
+              // Improved Metadata Row (Weekdays & Challenge)
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.calendar_today_rounded,
+                          size: 14,
+                          color: theme.colorScheme.onSurface.withValues(
+                            alpha: 0.6,
+                          ),
+                        ),
+                        AppSpacing.gapW4,
+                        Expanded(
+                          child: Text(
+                            alarm.formattedRepeatDays,
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              fontWeight: FontWeight.w600,
+                              color: theme.colorScheme.onSurface.withValues(
+                                alpha: 0.9,
+                              ),
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  AppSpacing.gapW12,
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: primaryColor.withValues(alpha: 0.1),
+                      borderRadius: AppSpacing.borderRadiusFull,
+                      border: Border.all(
+                        color: primaryColor.withValues(alpha: 0.25),
+                        width: 1,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          alarm.challengeType.icon,
+                          size: 14,
+                          color: primaryColor,
+                        ),
+                        AppSpacing.gapW4,
+                        Text(
+                          alarm.challengeType.displayName,
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: primaryColor,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ],
               ),
             ],
@@ -457,6 +639,9 @@ class _AlarmListTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final primaryColor = theme.colorScheme.primary;
+
     return AppCard(
       onTap: () => context.push('/edit-alarm', extra: alarm),
       child: Row(
@@ -474,16 +659,24 @@ class _AlarmListTile extends StatelessWidget {
                       children: [
                         Text(
                           alarm.formattedTime,
-                          style: AppTypography.displaySmall.copyWith(
-                            color: alarm.enabled ? AppColors.textPrimary : AppColors.textMuted,
+                          style: theme.textTheme.displaySmall?.copyWith(
+                            color: alarm.enabled
+                                ? theme.colorScheme.onSurface
+                                : theme.colorScheme.onSurface.withValues(
+                                    alpha: 0.4,
+                                  ),
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                         AppSpacing.gapW4,
                         Text(
                           alarm.formattedPeriod,
-                          style: AppTypography.titleMedium.copyWith(
-                            color: alarm.enabled ? AppColors.secondaryDark : AppColors.textMuted,
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            color: alarm.enabled
+                                ? primaryColor
+                                : theme.colorScheme.onSurface.withValues(
+                                    alpha: 0.4,
+                                  ),
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -493,8 +686,12 @@ class _AlarmListTile extends StatelessWidget {
                     Expanded(
                       child: Text(
                         alarm.label,
-                        style: AppTypography.bodyMedium.copyWith(
-                          color: alarm.enabled ? AppColors.textPrimary : AppColors.textMuted,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: alarm.enabled
+                              ? theme.colorScheme.onSurface
+                              : theme.colorScheme.onSurface.withValues(
+                                  alpha: 0.4,
+                                ),
                         ),
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -506,14 +703,26 @@ class _AlarmListTile extends StatelessWidget {
                   children: [
                     Text(
                       alarm.formattedRepeatDays,
-                      style: AppTypography.bodySmall.copyWith(color: AppColors.textMuted),
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurface.withValues(
+                          alpha: 0.5,
+                        ),
+                      ),
                     ),
                     const Text(' • '),
-                    Icon(alarm.challengeType.icon, size: 14, color: AppColors.textMuted),
+                    Icon(
+                      alarm.challengeType.icon,
+                      size: 14,
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                    ),
                     AppSpacing.gapW4,
                     Text(
                       alarm.challengeType.displayName,
-                      style: AppTypography.bodySmall.copyWith(color: AppColors.textMuted),
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurface.withValues(
+                          alpha: 0.5,
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -526,7 +735,7 @@ class _AlarmListTile extends StatelessWidget {
               HapticFeedback.selectionClick();
               context.read<AlarmBloc>().add(ToggleAlarm(alarm.id));
             },
-            activeTrackColor: AppColors.secondary,
+            activeTrackColor: primaryColor,
             thumbColor: WidgetStateProperty.all(Colors.white),
           ),
         ],
@@ -539,6 +748,9 @@ class _AlarmListTile extends StatelessWidget {
 class _EmptyAlarmsState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final primaryColor = theme.colorScheme.primary;
+
     return AppCard(
       padding: AppSpacing.paddingAllXl,
       margin: const EdgeInsets.only(bottom: AppSpacing.lg),
@@ -548,20 +760,25 @@ class _EmptyAlarmsState extends StatelessWidget {
             width: 76,
             height: 76,
             decoration: BoxDecoration(
-              gradient: AppColors.primaryGradient,
+              gradient: LinearGradient(
+                colors: [primaryColor, theme.colorScheme.secondary],
+              ),
               shape: BoxShape.circle,
-              boxShadow: AppShadows.soft,
             ),
             child: const Center(
-              child: Icon(Icons.alarm_add_rounded, size: 42, color: Colors.white),
+              child: Icon(
+                Icons.alarm_add_rounded,
+                size: 42,
+                color: Colors.white,
+              ),
             ),
           ),
           const SizedBox(height: 20),
-          Text('No Alarms Created Yet', style: AppTypography.headlineSmall),
+          Text('No Alarms Created Yet', style: theme.textTheme.headlineSmall),
           AppSpacing.gapH8,
           Text(
             'Set your first sunrise alarm with wake-up challenges to build your morning routine.',
-            style: AppTypography.bodyMedium,
+            style: theme.textTheme.bodyMedium,
             textAlign: TextAlign.center,
           ),
           AppSpacing.gapH24,
@@ -582,6 +799,9 @@ class _MorningStreakCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final primaryColor = theme.colorScheme.primary;
+
     return BlocBuilder<StatsBloc, StatsState>(
       builder: (context, state) {
         int streak = 7;
@@ -589,7 +809,9 @@ class _MorningStreakCard extends StatelessWidget {
         int level = 4;
 
         if (state is StatsLoaded) {
-          streak = state.stats.currentStreak > 0 ? state.stats.currentStreak : 1;
+          streak = state.stats.currentStreak > 0
+              ? state.stats.currentStreak
+              : 1;
           xp = state.stats.totalXp;
           level = state.stats.level;
         }
@@ -603,24 +825,31 @@ class _MorningStreakCard extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      const Icon(Icons.local_fire_department_rounded, color: AppColors.secondary, size: 24),
+                      Icon(
+                        Icons.local_fire_department_rounded,
+                        color: primaryColor,
+                        size: 24,
+                      ),
                       AppSpacing.gapW8,
                       Text(
                         'Morning Streak (Lvl $level)',
-                        style: AppTypography.titleLarge,
+                        style: theme.textTheme.titleLarge,
                       ),
                     ],
                   ),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
-                      color: AppColors.secondary.withValues(alpha: 0.15),
+                      color: primaryColor.withValues(alpha: 0.15),
                       borderRadius: AppSpacing.borderRadiusFull,
                     ),
                     child: Text(
                       '$streak DAYS 🔥 • $xp XP',
-                      style: AppTypography.labelSmall.copyWith(
-                        color: AppColors.secondaryDark,
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: primaryColor,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -628,12 +857,17 @@ class _MorningStreakCard extends StatelessWidget {
                 ],
               ),
               AppSpacing.gapH16,
-              Row(
+              const Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: const [
+                children: [
                   _DayProgressCircle(day: 'Mon', completed: true, index: 0),
                   _DayProgressCircle(day: 'Tue', completed: true, index: 1),
-                  _DayProgressCircle(day: 'Wed', completed: true, isToday: true, index: 2),
+                  _DayProgressCircle(
+                    day: 'Wed',
+                    completed: true,
+                    isToday: true,
+                    index: 2,
+                  ),
                   _DayProgressCircle(day: 'Thu', completed: false, index: 3),
                   _DayProgressCircle(day: 'Fri', completed: false, index: 4),
                   _DayProgressCircle(day: 'Sat', completed: false, index: 5),
@@ -663,6 +897,9 @@ class _DayProgressCircle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final primaryColor = theme.colorScheme.primary;
+
     return Column(
       children: [
         Container(
@@ -671,19 +908,29 @@ class _DayProgressCircle extends StatelessWidget {
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             color: completed
-                ? AppColors.primary
-                : (isToday ? AppColors.surfaceSubtle : AppColors.surface),
+                ? primaryColor
+                : (isToday
+                      ? primaryColor.withValues(alpha: 0.15)
+                      : theme.colorScheme.surface),
             border: isToday
-                ? Border.all(color: AppColors.secondary, width: 2)
-                : (completed ? null : Border.all(color: AppColors.border)),
+                ? Border.all(color: primaryColor, width: 2)
+                : (completed
+                      ? null
+                      : Border.all(
+                          color: theme.colorScheme.outline.withValues(
+                            alpha: 0.4,
+                          ),
+                        )),
           ),
           child: Center(
             child: completed
-                ? const Icon(Icons.check_rounded, color: AppColors.textOnPrimary, size: 20)
+                ? const Icon(Icons.check_rounded, color: Colors.white, size: 20)
                 : Text(
                     day[0],
-                    style: AppTypography.labelSmall.copyWith(
-                      color: isToday ? AppColors.secondaryDark : AppColors.textMuted,
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: isToday
+                          ? primaryColor
+                          : theme.colorScheme.onSurface.withValues(alpha: 0.5),
                       fontWeight: isToday ? FontWeight.bold : FontWeight.normal,
                     ),
                   ),
@@ -692,8 +939,10 @@ class _DayProgressCircle extends StatelessWidget {
         AppSpacing.gapH4,
         Text(
           day,
-          style: AppTypography.labelSmall.copyWith(
-            color: isToday ? AppColors.textPrimary : AppColors.textMuted,
+          style: theme.textTheme.labelSmall?.copyWith(
+            color: isToday
+                ? theme.colorScheme.onSurface
+                : theme.colorScheme.onSurface.withValues(alpha: 0.5),
             fontSize: 10,
           ),
         ),
@@ -708,16 +957,19 @@ class _WeatherCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final primaryColor = theme.colorScheme.primary;
+
     return AppCard(
       child: Row(
         children: [
           Container(
             padding: AppSpacing.paddingAllMd,
             decoration: BoxDecoration(
-              color: AppColors.secondaryLight.withValues(alpha: 0.3),
+              color: primaryColor.withValues(alpha: 0.15),
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.wb_sunny_rounded, color: AppColors.secondary, size: 32),
+            child: Icon(Icons.wb_sunny_rounded, color: primaryColor, size: 32),
           ),
           AppSpacing.gapW16,
           Expanded(
@@ -728,19 +980,25 @@ class _WeatherCard extends StatelessWidget {
                   children: [
                     Text(
                       '24°C',
-                      style: AppTypography.headlineMedium.copyWith(fontWeight: FontWeight.bold),
+                      style: theme.textTheme.headlineMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     AppSpacing.gapW8,
                     Text(
                       'Clear Sunrise',
-                      style: AppTypography.titleMedium.copyWith(color: AppColors.textSecondary),
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        color: theme.colorScheme.onSurface.withValues(
+                          alpha: 0.6,
+                        ),
+                      ),
                     ),
                   ],
                 ),
                 AppSpacing.gapH4,
                 Text(
                   'Perfect morning light for early wake-up.',
-                  style: AppTypography.bodySmall,
+                  style: theme.textTheme.bodySmall,
                 ),
               ],
             ),
@@ -757,30 +1015,30 @@ class _TodaysMissionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final primaryColor = theme.colorScheme.primary;
+
     return AppCard(
       child: Row(
         children: [
           Container(
             padding: AppSpacing.paddingAllMd,
             decoration: BoxDecoration(
-              color: AppColors.primaryLight.withValues(alpha: 0.3),
+              color: primaryColor.withValues(alpha: 0.15),
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.task_alt_rounded, color: AppColors.primaryDark, size: 28),
+            child: Icon(Icons.task_alt_rounded, color: primaryColor, size: 28),
           ),
           AppSpacing.gapW16,
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  "Today's Mission",
-                  style: AppTypography.titleLarge,
-                ),
+                Text("Today's Mission", style: theme.textTheme.titleLarge),
                 AppSpacing.gapH4,
                 Text(
                   'Math Challenge • 3 Equations',
-                  style: AppTypography.bodySmall,
+                  style: theme.textTheme.bodySmall,
                 ),
               ],
             ),
@@ -791,6 +1049,8 @@ class _TodaysMissionCard extends StatelessWidget {
               context.push('/challenge-selection');
             },
             style: ElevatedButton.styleFrom(
+              backgroundColor: primaryColor,
+              foregroundColor: Colors.white,
               minimumSize: const Size(80, 38),
               padding: const EdgeInsets.symmetric(horizontal: 14),
             ),

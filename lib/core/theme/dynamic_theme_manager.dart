@@ -98,13 +98,13 @@ class DynamicThemeManager extends ChangeNotifier with WidgetsBindingObserver {
   Color get accentColor {
     switch (_currentTheme) {
       case WakeTheme.morning:
-        return const Color(0xFFFF8C42);
+        return const Color(0xFFFA8231);
       case WakeTheme.afternoon:
-        return const Color(0xFFFF6F00);
+        return const Color(0xFFFDBA3B);
       case WakeTheme.evening:
-        return const Color(0xFFF4511E);
+        return const Color(0xFFE65100);
       case WakeTheme.night:
-        return const Color(0xFFFBBF24);
+        return const Color(0xFF38BDF8);
     }
   }
 
@@ -112,13 +112,13 @@ class DynamicThemeManager extends ChangeNotifier with WidgetsBindingObserver {
   List<Color> get accentColors {
     switch (_currentTheme) {
       case WakeTheme.morning:
-        return const [Color(0xFFF8B133), Color(0xFFFF8C42)];
+        return const [Color(0xFFF6B93B), Color(0xFFFA8231)];
       case WakeTheme.afternoon:
-        return const [Color(0xFFFFA000), Color(0xFFFF6F00)];
+        return const [Color(0xFFF6B93B), Color(0xFFFDBA3B)];
       case WakeTheme.evening:
-        return const [Color(0xFF8E24AA), Color(0xFFF4511E)];
+        return const [Color(0xFF6A1B9A), Color(0xFFE65100)];
       case WakeTheme.night:
-        return const [Color(0xFF818CF8), Color(0xFFFBBF24)];
+        return const [Color(0xFF818CF8), Color(0xFF38BDF8)];
     }
   }
 

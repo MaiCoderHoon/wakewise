@@ -2,10 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import '../../core/constants/theme/app_colors.dart';
-import '../../core/constants/theme/app_shadows.dart';
 import '../../core/constants/theme/app_spacing.dart';
-import '../../core/constants/theme/app_typography.dart';
 import '../../domain/challenges/entities/challenge_difficulty.dart';
 import '../../domain/entities/alarm.dart';
 import '../../domain/entities/alarm_history.dart';
@@ -97,17 +94,28 @@ class _AlarmRingScreenState extends State<AlarmRingScreen> with SingleTickerProv
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final primaryColor = theme.colorScheme.primary;
+
     final formattedHour = _currentTime.hour % 12 == 0 ? 12 : _currentTime.hour % 12;
     final formattedMinute = _currentTime.minute.toString().padLeft(2, '0');
     final period = _currentTime.hour >= 12 ? 'PM' : 'AM';
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: Container(
         width: double.infinity,
         height: double.infinity,
-        decoration: const BoxDecoration(
-          gradient: AppColors.backgroundGradient,
+        decoration: BoxDecoration(
+          color: theme.scaffoldBackgroundColor,
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              primaryColor.withValues(alpha: 0.25),
+              theme.scaffoldBackgroundColor,
+            ],
+          ),
         ),
         child: SafeArea(
           child: Column(
@@ -121,18 +129,18 @@ class _AlarmRingScreenState extends State<AlarmRingScreen> with SingleTickerProv
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                       decoration: BoxDecoration(
-                        color: AppColors.secondary.withValues(alpha: 0.2),
+                        color: primaryColor.withValues(alpha: 0.15),
                         borderRadius: AppSpacing.borderRadiusFull,
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.wb_sunny_rounded, color: AppColors.secondary, size: 18),
+                          Icon(Icons.wb_sunny_rounded, color: primaryColor, size: 18),
                           AppSpacing.gapW8,
                           Text(
                             'WAKEWISE SUNRISE ALARM',
-                            style: AppTypography.labelSmall.copyWith(
-                              color: AppColors.secondaryDark,
+                            style: theme.textTheme.labelSmall?.copyWith(
+                              color: primaryColor,
                               fontWeight: FontWeight.bold,
                               letterSpacing: 0.5,
                             ),
@@ -143,7 +151,7 @@ class _AlarmRingScreenState extends State<AlarmRingScreen> with SingleTickerProv
                     AppSpacing.gapH12,
                     Text(
                       widget.alarm.label,
-                      style: AppTypography.headlineLarge,
+                      style: theme.textTheme.headlineLarge,
                       textAlign: TextAlign.center,
                     ),
                   ],
@@ -158,16 +166,24 @@ class _AlarmRingScreenState extends State<AlarmRingScreen> with SingleTickerProv
                   height: 260,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    gradient: AppColors.primaryGradient,
-                    boxShadow: AppShadows.floating,
+                    gradient: LinearGradient(
+                      colors: [primaryColor, theme.colorScheme.secondary],
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: primaryColor.withValues(alpha: 0.4),
+                        blurRadius: 32,
+                        spreadRadius: 6,
+                      ),
+                    ],
                   ),
                   child: Center(
                     child: Container(
                       width: 220,
                       height: 220,
-                      decoration: const BoxDecoration(
+                      decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: AppColors.surface,
+                        color: theme.colorScheme.surface,
                       ),
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -179,17 +195,16 @@ class _AlarmRingScreenState extends State<AlarmRingScreen> with SingleTickerProv
                             children: [
                               Text(
                                 '${formattedHour.toString().padLeft(2, '0')}:$formattedMinute',
-                                style: AppTypography.displayLarge.copyWith(
+                                style: theme.textTheme.displayLarge?.copyWith(
                                   fontSize: 48,
                                   fontWeight: FontWeight.w800,
-                                  color: AppColors.textPrimary,
                                 ),
                               ),
                               AppSpacing.gapW4,
                               Text(
                                 period,
-                                style: AppTypography.titleLarge.copyWith(
-                                  color: AppColors.secondaryDark,
+                                style: theme.textTheme.titleLarge?.copyWith(
+                                  color: primaryColor,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
@@ -199,11 +214,11 @@ class _AlarmRingScreenState extends State<AlarmRingScreen> with SingleTickerProv
                           Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(widget.alarm.challengeType.icon, size: 16, color: AppColors.secondary),
+                              Icon(widget.alarm.challengeType.icon, size: 16, color: primaryColor),
                               AppSpacing.gapW4,
                               Text(
                                 widget.alarm.challengeType.displayName,
-                                style: AppTypography.labelSmall,
+                                style: theme.textTheme.labelSmall,
                               ),
                             ],
                           ),
@@ -227,23 +242,32 @@ class _AlarmRingScreenState extends State<AlarmRingScreen> with SingleTickerProv
                     width: double.infinity,
                     padding: const EdgeInsets.symmetric(vertical: 20),
                     decoration: BoxDecoration(
-                      color: AppColors.surface,
+                      color: theme.colorScheme.surface,
                       borderRadius: AppSpacing.borderRadiusXl,
-                      boxShadow: AppShadows.buttonGlow,
-                      border: Border.all(color: AppColors.primaryLight, width: 2),
+                      border: Border.all(
+                        color: primaryColor.withValues(alpha: 0.5),
+                        width: 2,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: primaryColor.withValues(alpha: 0.2),
+                          blurRadius: 16,
+                          spreadRadius: 2,
+                        ),
+                      ],
                     ),
                     child: Column(
                       children: [
-                        const Icon(
+                        Icon(
                           Icons.keyboard_double_arrow_up_rounded,
-                          color: AppColors.secondary,
+                          color: primaryColor,
                           size: 32,
                         ),
                         AppSpacing.gapH4,
                         Text(
                           'SWIPE UP TO BEGIN MISSION',
-                          style: AppTypography.labelLarge.copyWith(
-                            color: AppColors.textPrimary,
+                          style: theme.textTheme.labelLarge?.copyWith(
+                            color: theme.colorScheme.onSurface,
                             fontWeight: FontWeight.bold,
                             letterSpacing: 0.5,
                           ),

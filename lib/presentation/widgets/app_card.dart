@@ -4,7 +4,7 @@ import '../../core/constants/theme/app_shadows.dart';
 import '../../core/constants/theme/app_spacing.dart';
 
 /// WakeWise Reusable Card Component
-/// Soft cream card surface with large rounded corners (24-32px), subtle warm border, and ambient shadow.
+/// Theme-adapted card surface with large rounded corners (24-28px), subtle glowing border, and ambient shadow.
 class AppCard extends StatelessWidget {
   final Widget child;
   final EdgeInsetsGeometry padding;
@@ -31,7 +31,7 @@ class AppCard extends StatelessWidget {
     this.clipBehavior = Clip.antiAlias,
   });
 
-  /// Preset for elevated hero/accent cards with subtle sunrise tint
+  /// Preset for elevated hero/accent cards with subtle sunrise/theme tint
   factory AppCard.accent({
     Key? key,
     required Widget child,
@@ -99,7 +99,15 @@ class AppCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final cardTheme = theme.cardTheme;
     final effectiveBorderRadius = BorderRadius.circular(borderRadius);
+
+    final effectiveBgColor = backgroundColor ?? cardTheme.color ?? theme.colorScheme.surface;
+    final effectiveBorder = border ?? Border.all(
+      color: theme.colorScheme.outline.withValues(alpha: 0.5),
+      width: 1.0,
+    );
 
     Widget cardBody = Container(
       padding: padding,
@@ -112,8 +120,8 @@ class AppCard extends StatelessWidget {
         child: InkWell(
           onTap: onTap,
           borderRadius: effectiveBorderRadius,
-          splashColor: AppColors.primaryLight.withValues(alpha: 0.3),
-          highlightColor: AppColors.surfaceSubtle,
+          splashColor: theme.colorScheme.primary.withValues(alpha: 0.15),
+          highlightColor: theme.colorScheme.primary.withValues(alpha: 0.05),
           child: cardBody,
         ),
       );
@@ -122,10 +130,10 @@ class AppCard extends StatelessWidget {
     return Container(
       margin: margin,
       decoration: BoxDecoration(
-        color: backgroundColor ?? AppColors.surface,
+        color: gradient == null ? effectiveBgColor : null,
         gradient: gradient,
         borderRadius: effectiveBorderRadius,
-        border: border ?? Border.all(color: AppColors.border, width: 1.0),
+        border: effectiveBorder,
         boxShadow: boxShadow ?? AppShadows.soft,
       ),
       clipBehavior: clipBehavior,

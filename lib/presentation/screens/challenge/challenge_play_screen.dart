@@ -2,10 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import '../../../core/constants/theme/app_colors.dart';
-import '../../../core/constants/theme/app_shadows.dart';
 import '../../../core/constants/theme/app_spacing.dart';
-import '../../../core/constants/theme/app_typography.dart';
 import '../../../domain/challenges/entities/base_challenge.dart';
 import '../../../domain/challenges/entities/challenge_difficulty.dart';
 import '../../../domain/challenges/entities/challenge_result.dart';
@@ -55,6 +52,8 @@ class _ChallengePlayScreenState extends State<ChallengePlayScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return BlocProvider.value(
       value: _challengeBloc,
       child: AppPageScaffold(
@@ -96,8 +95,8 @@ class _ChallengePlayScreenState extends State<ChallengePlayScreen> {
               );
             }
 
-            return const Center(
-              child: CircularProgressIndicator(color: AppColors.secondary),
+            return Center(
+              child: CircularProgressIndicator(color: theme.colorScheme.primary),
             );
           },
         ),
@@ -148,6 +147,9 @@ class _MathChallengeViewState extends State<_MathChallengeView> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final primaryColor = theme.colorScheme.primary;
+
     return Column(
       children: [
         AppCard.accent(
@@ -155,8 +157,8 @@ class _MathChallengeViewState extends State<_MathChallengeView> {
             children: [
               Text(
                 'MATH MISSION',
-                style: AppTypography.labelSmall.copyWith(
-                  color: AppColors.secondaryDark,
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: primaryColor,
                   fontWeight: FontWeight.bold,
                   letterSpacing: 1.0,
                 ),
@@ -164,22 +166,27 @@ class _MathChallengeViewState extends State<_MathChallengeView> {
               AppSpacing.gapH16,
               Text(
                 widget.challenge.question,
-                style: AppTypography.displayLarge.copyWith(fontSize: 48),
+                style: theme.textTheme.displayLarge?.copyWith(fontSize: 48),
               ),
               AppSpacing.gapH16,
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
                 decoration: BoxDecoration(
-                  color: AppColors.surface,
+                  color: theme.colorScheme.surface,
                   borderRadius: AppSpacing.borderRadiusLg,
-                  border: Border.all(color: AppColors.border, width: 1.5),
+                  border: Border.all(
+                    color: theme.colorScheme.outline.withValues(alpha: 0.5),
+                    width: 1.5,
+                  ),
                 ),
                 child: Text(
                   _inputBuffer.isEmpty ? 'Tap digits below...' : _inputBuffer,
                   textAlign: TextAlign.center,
-                  style: AppTypography.headlineLarge.copyWith(
-                    color: _inputBuffer.isEmpty ? AppColors.textMuted : AppColors.textPrimary,
+                  style: theme.textTheme.headlineLarge?.copyWith(
+                    color: _inputBuffer.isEmpty
+                        ? theme.colorScheme.onSurface.withValues(alpha: 0.4)
+                        : theme.colorScheme.onSurface,
                     fontSize: 28,
                   ),
                 ),
@@ -188,7 +195,9 @@ class _MathChallengeViewState extends State<_MathChallengeView> {
                 AppSpacing.gapH12,
                 Text(
                   widget.feedbackMessage!,
-                  style: AppTypography.titleMedium.copyWith(color: AppColors.error),
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    color: theme.colorScheme.error,
+                  ),
                 ),
               ],
             ],
@@ -217,12 +226,16 @@ class _MathChallengeViewState extends State<_MathChallengeView> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  _KeypadButton(text: 'C', onTap: _onClear, backgroundColor: AppColors.surfaceSubtle),
+                  _KeypadButton(
+                    text: 'C',
+                    onTap: _onClear,
+                    backgroundColor: theme.colorScheme.primary.withValues(alpha: 0.12),
+                  ),
                   _KeypadButton(text: '0', onTap: () => _onKeyPress('0')),
                   _KeypadButton(
                     icon: Icons.backspace_outlined,
                     onTap: _onBackspace,
-                    backgroundColor: AppColors.surfaceSubtle,
+                    backgroundColor: theme.colorScheme.primary.withValues(alpha: 0.12),
                   ),
                 ],
               ),
@@ -257,26 +270,35 @@ class _KeypadButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return SizedBox(
       width: 72,
       height: 60,
       child: Material(
-        color: backgroundColor ?? AppColors.surface,
+        color: backgroundColor ?? theme.colorScheme.surface,
         borderRadius: AppSpacing.borderRadiusLg,
         elevation: 0,
         child: InkWell(
           onTap: onTap,
           borderRadius: AppSpacing.borderRadiusLg,
-          splashColor: AppColors.primaryLight,
+          splashColor: theme.colorScheme.primary.withValues(alpha: 0.15),
           child: Container(
             decoration: BoxDecoration(
               borderRadius: AppSpacing.borderRadiusLg,
-              border: Border.all(color: AppColors.border),
+              border: Border.all(
+                color: theme.colorScheme.outline.withValues(alpha: 0.4),
+              ),
             ),
             child: Center(
               child: text != null
-                  ? Text(text!, style: AppTypography.headlineMedium.copyWith(fontWeight: FontWeight.bold))
-                  : Icon(icon, color: AppColors.textPrimary, size: 22),
+                  ? Text(
+                      text!,
+                      style: theme.textTheme.headlineMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    )
+                  : Icon(icon, color: theme.colorScheme.onSurface, size: 22),
             ),
           ),
         ),
@@ -347,6 +369,9 @@ class _MemoryChallengeViewState extends State<_MemoryChallengeView> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final primaryColor = theme.colorScheme.primary;
+
     return Column(
       children: [
         AppCard.accent(
@@ -354,8 +379,8 @@ class _MemoryChallengeViewState extends State<_MemoryChallengeView> {
             children: [
               Text(
                 'MEMORY RECALL MISSION',
-                style: AppTypography.labelSmall.copyWith(
-                  color: AppColors.secondaryDark,
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: primaryColor,
                   fontWeight: FontWeight.bold,
                   letterSpacing: 1.0,
                 ),
@@ -366,7 +391,7 @@ class _MemoryChallengeViewState extends State<_MemoryChallengeView> {
                       children: [
                         Text(
                           'Memorize Pattern in $_previewCountdown s',
-                          style: AppTypography.titleMedium.copyWith(color: AppColors.secondaryDark),
+                          style: theme.textTheme.titleMedium?.copyWith(color: primaryColor),
                         ),
                         AppSpacing.gapH12,
                         Wrap(
@@ -377,14 +402,16 @@ class _MemoryChallengeViewState extends State<_MemoryChallengeView> {
                                   width: 44,
                                   height: 44,
                                   decoration: BoxDecoration(
-                                    color: AppColors.primary,
+                                    color: primaryColor,
                                     shape: BoxShape.circle,
-                                    boxShadow: AppShadows.soft,
                                   ),
                                   child: Center(
                                     child: Text(
                                       '$n',
-                                      style: AppTypography.titleLarge.copyWith(color: AppColors.textOnPrimary),
+                                      style: theme.textTheme.titleLarge?.copyWith(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -397,7 +424,7 @@ class _MemoryChallengeViewState extends State<_MemoryChallengeView> {
                       children: [
                         Text(
                           'Tap tiles in sequence (${_userSequence.length}/${widget.challenge.sequenceLength})',
-                          style: AppTypography.titleMedium,
+                          style: theme.textTheme.titleMedium,
                         ),
                         AppSpacing.gapH12,
                         Row(
@@ -409,15 +436,21 @@ class _MemoryChallengeViewState extends State<_MemoryChallengeView> {
                               width: 32,
                               height: 32,
                               decoration: BoxDecoration(
-                                color: idx < _userSequence.length ? AppColors.secondary : AppColors.surface,
+                                color: idx < _userSequence.length
+                                    ? primaryColor
+                                    : theme.colorScheme.surface,
                                 shape: BoxShape.circle,
-                                border: Border.all(color: AppColors.border),
+                                border: Border.all(
+                                  color: theme.colorScheme.outline.withValues(alpha: 0.4),
+                                ),
                               ),
                               child: Center(
                                 child: Text(
                                   idx < _userSequence.length ? '${_userSequence[idx]}' : '?',
-                                  style: AppTypography.labelSmall.copyWith(
-                                    color: idx < _userSequence.length ? Colors.white : AppColors.textMuted,
+                                  style: theme.textTheme.labelSmall?.copyWith(
+                                    color: idx < _userSequence.length
+                                        ? Colors.white
+                                        : theme.colorScheme.onSurface.withValues(alpha: 0.4),
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
@@ -431,7 +464,7 @@ class _MemoryChallengeViewState extends State<_MemoryChallengeView> {
                 AppSpacing.gapH12,
                 Text(
                   widget.feedbackMessage!,
-                  style: AppTypography.bodySmall.copyWith(color: AppColors.error),
+                  style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.error),
                 ),
               ],
             ],
@@ -455,16 +488,21 @@ class _MemoryChallengeViewState extends State<_MemoryChallengeView> {
                 onTap: () => _onTileTap(number),
                 child: Container(
                   decoration: BoxDecoration(
-                    color: _showingPreview ? AppColors.surfaceSubtle : AppColors.surface,
+                    color: _showingPreview
+                        ? primaryColor.withValues(alpha: 0.1)
+                        : theme.colorScheme.surface,
                     borderRadius: AppSpacing.borderRadiusLg,
-                    border: Border.all(color: AppColors.border),
-                    boxShadow: AppShadows.soft,
+                    border: Border.all(
+                      color: theme.colorScheme.outline.withValues(alpha: 0.4),
+                    ),
                   ),
                   child: Center(
                     child: Text(
                       '$number',
-                      style: AppTypography.displaySmall.copyWith(
-                        color: _showingPreview ? AppColors.textMuted : AppColors.textPrimary,
+                      style: theme.textTheme.displaySmall?.copyWith(
+                        color: _showingPreview
+                            ? theme.colorScheme.onSurface.withValues(alpha: 0.4)
+                            : theme.colorScheme.onSurface,
                       ),
                     ),
                   ),
@@ -497,6 +535,9 @@ class _ShakeChallengeView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final primaryColor = theme.colorScheme.primary;
+
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -505,8 +546,8 @@ class _ShakeChallengeView extends StatelessWidget {
             children: [
               Text(
                 'SHAKE MISSION',
-                style: AppTypography.labelSmall.copyWith(
-                  color: AppColors.secondaryDark,
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: primaryColor,
                   fontWeight: FontWeight.bold,
                   letterSpacing: 1.0,
                 ),
@@ -523,22 +564,24 @@ class _ShakeChallengeView extends StatelessWidget {
                     child: CircularProgressIndicator(
                       value: challenge.progress,
                       strokeWidth: 14,
-                      backgroundColor: AppColors.border,
-                      valueColor: const AlwaysStoppedAnimation<Color>(AppColors.secondary),
+                      backgroundColor: theme.colorScheme.outline.withValues(alpha: 0.3),
+                      valueColor: AlwaysStoppedAnimation<Color>(primaryColor),
                     ),
                   ),
                   Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.vibration_rounded, size: 48, color: AppColors.secondary),
+                      Icon(Icons.vibration_rounded, size: 48, color: primaryColor),
                       AppSpacing.gapH8,
                       Text(
                         '${(challenge.progress * 100).toInt()}%',
-                        style: AppTypography.displayMedium.copyWith(fontWeight: FontWeight.bold),
+                        style: theme.textTheme.displayMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                       Text(
                         '${challenge.currentShakes} / ${challenge.targetShakes}',
-                        style: AppTypography.bodySmall,
+                        style: theme.textTheme.bodySmall,
                       ),
                     ],
                   ),
@@ -548,7 +591,7 @@ class _ShakeChallengeView extends StatelessWidget {
               AppSpacing.gapH24,
               Text(
                 'Shake your device vigorously!',
-                style: AppTypography.titleLarge,
+                style: theme.textTheme.titleLarge,
                 textAlign: TextAlign.center,
               ),
             ],
@@ -582,6 +625,9 @@ class _ChallengeSuccessView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final primaryColor = theme.colorScheme.primary;
+
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -590,24 +636,32 @@ class _ChallengeSuccessView extends StatelessWidget {
           height: 140,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            gradient: AppColors.primaryGradient,
-            boxShadow: AppShadows.floating,
+            gradient: LinearGradient(
+              colors: [primaryColor, theme.colorScheme.secondary],
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: primaryColor.withValues(alpha: 0.4),
+                blurRadius: 24,
+                spreadRadius: 4,
+              ),
+            ],
           ),
           child: const Center(
-            child: Icon(Icons.emoji_events_rounded, size: 72, color: AppColors.textOnPrimary),
+            child: Icon(Icons.emoji_events_rounded, size: 72, color: Colors.white),
           ),
         ),
         AppSpacing.gapH32,
 
         Text(
           'Mission Accomplished!',
-          style: AppTypography.displaySmall,
+          style: theme.textTheme.displaySmall,
           textAlign: TextAlign.center,
         ),
         AppSpacing.gapH8,
         Text(
           result.message.isNotEmpty ? result.message : 'You are wide awake and energized!',
-          style: AppTypography.bodyLarge,
+          style: theme.textTheme.bodyLarge,
           textAlign: TextAlign.center,
         ),
 
@@ -619,18 +673,18 @@ class _ChallengeSuccessView extends StatelessWidget {
             children: [
               Column(
                 children: [
-                  const Icon(Icons.bolt_rounded, color: AppColors.secondary, size: 28),
+                  Icon(Icons.bolt_rounded, color: primaryColor, size: 28),
                   AppSpacing.gapH4,
-                  Text('+${result.earnedXp} XP', style: AppTypography.titleLarge),
-                  Text('Reward', style: AppTypography.bodySmall),
+                  Text('+${result.earnedXp} XP', style: theme.textTheme.titleLarge),
+                  Text('Reward', style: theme.textTheme.bodySmall),
                 ],
               ),
               Column(
                 children: [
-                  const Icon(Icons.check_circle_outline_rounded, color: AppColors.success, size: 28),
+                  Icon(Icons.check_circle_outline_rounded, color: theme.colorScheme.primary, size: 28),
                   AppSpacing.gapH4,
-                  Text('${result.attempts}', style: AppTypography.titleLarge),
-                  Text('Attempts', style: AppTypography.bodySmall),
+                  Text('${result.attempts}', style: theme.textTheme.titleLarge),
+                  Text('Attempts', style: theme.textTheme.bodySmall),
                 ],
               ),
             ],
