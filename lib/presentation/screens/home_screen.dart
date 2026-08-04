@@ -411,13 +411,39 @@ class _ShimmerTile extends StatelessWidget {
 }
 
 /// Hero Upcoming Alarm Card
-class _HeroUpcomingAlarmCard extends StatelessWidget {
+class _HeroUpcomingAlarmCard extends StatefulWidget {
   final Alarm alarm;
 
   const _HeroUpcomingAlarmCard({required this.alarm});
 
   @override
+  State<_HeroUpcomingAlarmCard> createState() => _HeroUpcomingAlarmCardState();
+}
+
+class _HeroUpcomingAlarmCardState extends State<_HeroUpcomingAlarmCard>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _glowCtrl;
+  late final Animation<double> _glowAnim;
+
+  @override
+  void initState() {
+    super.initState();
+    _glowCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1600),
+    )..repeat(reverse: true);
+    _glowAnim = CurvedAnimation(parent: _glowCtrl, curve: Curves.easeInOut);
+  }
+
+  @override
+  void dispose() {
+    _glowCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final alarm = widget.alarm;
     final theme = Theme.of(context);
     final primaryColor = theme.colorScheme.primary;
     final isDark = theme.brightness == Brightness.dark;
@@ -469,17 +495,52 @@ class _HeroUpcomingAlarmCard extends StatelessWidget {
                     children: [
                       Row(
                         children: [
-                          Container(
-                            padding: const EdgeInsets.all(6),
-                            decoration: BoxDecoration(
-                              color: primaryColor.withValues(alpha: 0.12),
-                              shape: BoxShape.circle,
-                            ),
-                            child: Icon(
-                              Icons.access_time_filled_rounded,
-                              color: primaryColor,
-                              size: 16,
-                            ),
+                          // ── Glowing Clock Icon ──────────────────────────
+                          AnimatedBuilder(
+                            animation: _glowAnim,
+                            builder: (context, _) {
+                              final t = _glowAnim.value;
+                              // Background alpha: 0.10 → 0.22
+                              final bgAlpha = 0.10 + t * 0.12;
+                              // Glow blur: 4 → 9px  (tight, stays close to icon)
+                              final glowBlur = 4.0 + t * 5.0;
+                              // Glow spread: 0 → 1.5px  (minimal outward push)
+                              final glowSpread = t * 1.5;
+                              // Glow opacity: 0.25 → 0.65
+                              final glowOpacity = 0.25 + t * 0.40;
+
+                              return Container(
+                                padding: const EdgeInsets.all(6),
+                                decoration: BoxDecoration(
+                                  color: primaryColor.withValues(
+                                    alpha: bgAlpha,
+                                  ),
+                                  shape: BoxShape.circle,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: primaryColor.withValues(
+                                        alpha: glowOpacity,
+                                      ),
+                                      blurRadius: glowBlur,
+                                      spreadRadius: glowSpread,
+                                    ),
+                                    // Inner soft halo
+                                    BoxShadow(
+                                      color: primaryColor.withValues(
+                                        alpha: glowOpacity * 0.2,
+                                      ),
+                                      blurRadius: glowBlur * 1.2,
+                                      spreadRadius: glowSpread * 0.4,
+                                    ),
+                                  ],
+                                ),
+                                child: Icon(
+                                  Icons.access_time_filled_rounded,
+                                  color: primaryColor,
+                                  size: 16,
+                                ),
+                              );
+                            },
                           ),
                           AppSpacing.gapW8,
                           Text(
@@ -499,7 +560,9 @@ class _HeroUpcomingAlarmCard extends StatelessWidget {
                           value: alarm.enabled,
                           onChanged: (val) {
                             HapticFeedback.selectionClick();
-                            context.read<AlarmBloc>().add(ToggleAlarm(alarm.id));
+                            context.read<AlarmBloc>().add(
+                              ToggleAlarm(alarm.id),
+                            );
                           },
                           activeTrackColor: primaryColor,
                           thumbColor: WidgetStateProperty.all(Colors.white),
@@ -545,7 +608,9 @@ class _HeroUpcomingAlarmCard extends StatelessWidget {
                       Icon(
                         Icons.label_outline_rounded,
                         size: 14,
-                        color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                        color: theme.colorScheme.onSurface.withValues(
+                          alpha: 0.6,
+                        ),
                       ),
                       AppSpacing.gapW4,
                       Expanded(
