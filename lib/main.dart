@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 
 import 'core/services/time_of_day_service.dart';
 import 'core/theme/dynamic_theme_manager.dart';
@@ -25,6 +26,9 @@ import 'routes/app_router.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Pre-warm liquid glass shaders (prevents white flash on first render)
+  await LiquidGlassWidgets.initialize();
 
   // Initialize Hive local storage
   await Hive.initFlutter();
@@ -54,13 +58,18 @@ void main() async {
   const timeOfDayService = TimeOfDayService();
   final dynamicThemeManager = DynamicThemeManager(timeOfDayService: timeOfDayService);
 
-  runApp(WakewiseApp(
-    alarmRepository: alarmRepository,
-    statsRepository: statsRepository,
-    achievementRepository: achievementRepository,
-    notificationService: notificationService,
-    dynamicThemeManager: dynamicThemeManager,
-  ));
+  runApp(
+    LiquidGlassWidgets.wrap(
+      adaptiveQuality: true,
+      child: WakewiseApp(
+        alarmRepository: alarmRepository,
+        statsRepository: statsRepository,
+        achievementRepository: achievementRepository,
+        notificationService: notificationService,
+        dynamicThemeManager: dynamicThemeManager,
+      ),
+    ),
+  );
 }
 
 class WakewiseApp extends StatelessWidget {

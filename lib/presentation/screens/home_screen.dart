@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import '../../core/constants/theme/app_spacing.dart';
 import '../../domain/entities/alarm.dart';
 import '../blocs/alarm/alarm_bloc.dart';
@@ -419,213 +420,230 @@ class _HeroUpcomingAlarmCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final primaryColor = theme.colorScheme.primary;
+    final isDark = theme.brightness == Brightness.dark;
 
-    return AppCard.accent(
+    // Glass surface colours adapt to the current theme
+    final glassColor = isDark
+        ? primaryColor.withValues(alpha: 0.08)
+        : primaryColor.withValues(alpha: 0.06);
+
+    return GestureDetector(
       onTap: () => context.push('/edit-alarm', extra: alarm),
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      borderRadius: AppSpacing.radiusLg,
-      child: Stack(
-        children: [
-          // Subtle radial highlight behind the time for depth
-          Positioned.fill(
-            child: IgnorePointer(
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  borderRadius: AppSpacing.borderRadiusXl,
-                  gradient: RadialGradient(
-                    center: const Alignment(-0.6, -0.2),
-                    radius: 0.95,
-                    colors: [
-                      primaryColor.withValues(alpha: 0.03),
-                      Colors.transparent,
-                    ],
+      child: AdaptiveLiquidGlassLayer(
+        child: GlassCard(
+          quality: GlassQuality.standard,
+          settings: LiquidGlassSettings(
+            blur: isDark ? 18 : 14,
+            thickness: isDark ? 40 : 28,
+            glassColor: glassColor,
+            specularSharpness: GlassSpecularSharpness.medium,
+          ),
+          shape: LiquidRoundedSuperellipse(borderRadius: AppSpacing.radiusLg),
+          padding: const EdgeInsets.all(AppSpacing.lg),
+          child: Stack(
+            children: [
+              // Subtle radial highlight behind the time for depth
+              Positioned.fill(
+                child: IgnorePointer(
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      borderRadius: AppSpacing.borderRadiusXl,
+                      gradient: RadialGradient(
+                        center: const Alignment(-0.6, -0.2),
+                        radius: 0.95,
+                        colors: [
+                          primaryColor.withValues(alpha: 0.05),
+                          Colors.transparent,
+                        ],
+                      ),
+                    ),
                   ),
                 ),
               ),
-            ),
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Top Bar: Header label & Visually secondary toggle
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Top Bar: Header label & Visually secondary toggle
                   Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Container(
-                        padding: const EdgeInsets.all(6),
-                        decoration: BoxDecoration(
-                          color: primaryColor.withValues(alpha: 0.12),
-                          shape: BoxShape.circle,
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              color: primaryColor.withValues(alpha: 0.12),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              Icons.access_time_filled_rounded,
+                              color: primaryColor,
+                              size: 16,
+                            ),
+                          ),
+                          AppSpacing.gapW8,
+                          Text(
+                            'NEXT UPCOMING ALARM',
+                            style: theme.textTheme.labelSmall?.copyWith(
+                              color: primaryColor,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 0.8,
+                              fontSize: 11,
+                            ),
+                          ),
+                        ],
+                      ),
+                      Transform.scale(
+                        scale: 0.85,
+                        child: Switch.adaptive(
+                          value: alarm.enabled,
+                          onChanged: (val) {
+                            HapticFeedback.selectionClick();
+                            context.read<AlarmBloc>().add(ToggleAlarm(alarm.id));
+                          },
+                          activeTrackColor: primaryColor,
+                          thumbColor: WidgetStateProperty.all(Colors.white),
                         ),
-                        child: Icon(
-                          Icons.access_time_filled_rounded,
-                          color: primaryColor,
-                          size: 16,
+                      ),
+                    ],
+                  ),
+
+                  AppSpacing.gapH8,
+
+                  // Dominant Alarm Time Display
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.baseline,
+                    textBaseline: TextBaseline.alphabetic,
+                    children: [
+                      Text(
+                        alarm.formattedTime,
+                        style: theme.textTheme.displayLarge?.copyWith(
+                          fontSize: 60,
+                          fontWeight: FontWeight.w900,
+                          height: 1.0,
+                          letterSpacing: -2.0,
+                          color: theme.colorScheme.onSurface,
                         ),
                       ),
                       AppSpacing.gapW8,
                       Text(
-                        'NEXT UPCOMING ALARM',
-                        style: theme.textTheme.labelSmall?.copyWith(
+                        alarm.formattedPeriod,
+                        style: theme.textTheme.headlineLarge?.copyWith(
+                          fontSize: 26,
                           color: primaryColor,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 0.8,
-                          fontSize: 11,
+                          fontWeight: FontWeight.w800,
                         ),
                       ),
                     ],
                   ),
-                  Transform.scale(
-                    scale: 0.85,
-                    child: Switch.adaptive(
-                      value: alarm.enabled,
-                      onChanged: (val) {
-                        HapticFeedback.selectionClick();
-                        context.read<AlarmBloc>().add(ToggleAlarm(alarm.id));
-                      },
-                      activeTrackColor: primaryColor,
-                      thumbColor: WidgetStateProperty.all(Colors.white),
-                    ),
-                  ),
-                ],
-              ),
 
-              AppSpacing.gapH8,
+                  AppSpacing.gapH4,
 
-              // Dominant Alarm Time Display
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.baseline,
-                textBaseline: TextBaseline.alphabetic,
-                children: [
-                  Text(
-                    alarm.formattedTime,
-                    style: theme.textTheme.displayLarge?.copyWith(
-                      fontSize: 60,
-                      fontWeight: FontWeight.w900,
-                      height: 1.0,
-                      letterSpacing: -2.0,
-                      color: theme.colorScheme.onSurface,
-                    ),
-                  ),
-                  AppSpacing.gapW8,
-                  Text(
-                    alarm.formattedPeriod,
-                    style: theme.textTheme.headlineLarge?.copyWith(
-                      fontSize: 26,
-                      color: primaryColor,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                ],
-              ),
-
-              AppSpacing.gapH4,
-
-              // Alarm Label directly beneath time
-              Row(
-                children: [
-                  Icon(
-                    Icons.label_outline_rounded,
-                    size: 14,
-                    color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
-                  ),
-                  AppSpacing.gapW4,
-                  Expanded(
-                    child: Text(
-                      alarm.label,
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        color: theme.colorScheme.onSurface.withValues(
-                          alpha: 0.85,
-                        ),
-                        fontWeight: FontWeight.w600,
+                  // Alarm Label directly beneath time
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.label_outline_rounded,
+                        size: 14,
+                        color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
                       ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ],
-              ),
-
-              AppSpacing.gapH16,
-
-              // Subtle separator line with reduced visual weight
-              Divider(
-                height: 1,
-                thickness: 1,
-                color: theme.colorScheme.outline.withValues(alpha: 0.12),
-              ),
-
-              AppSpacing.gapH12,
-
-              // Improved Metadata Row (Weekdays & Challenge)
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.calendar_today_rounded,
-                          size: 14,
-                          color: theme.colorScheme.onSurface.withValues(
-                            alpha: 0.6,
+                      AppSpacing.gapW4,
+                      Expanded(
+                        child: Text(
+                          alarm.label,
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            color: theme.colorScheme.onSurface.withValues(
+                              alpha: 0.85,
+                            ),
+                            fontWeight: FontWeight.w600,
                           ),
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        AppSpacing.gapW4,
-                        Expanded(
-                          child: Text(
-                            alarm.formattedRepeatDays,
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              fontWeight: FontWeight.w600,
+                      ),
+                    ],
+                  ),
+
+                  AppSpacing.gapH16,
+
+                  // Subtle separator line with reduced visual weight
+                  Divider(
+                    height: 1,
+                    thickness: 1,
+                    color: theme.colorScheme.outline.withValues(alpha: 0.12),
+                  ),
+
+                  AppSpacing.gapH12,
+
+                  // Improved Metadata Row (Weekdays & Challenge)
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.calendar_today_rounded,
+                              size: 14,
                               color: theme.colorScheme.onSurface.withValues(
-                                alpha: 0.9,
+                                alpha: 0.6,
                               ),
                             ),
-                            overflow: TextOverflow.ellipsis,
-                          ),
+                            AppSpacing.gapW4,
+                            Expanded(
+                              child: Text(
+                                alarm.formattedRepeatDays,
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                  color: theme.colorScheme.onSurface.withValues(
+                                    alpha: 0.9,
+                                  ),
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                  ),
-                  AppSpacing.gapW12,
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: primaryColor.withValues(alpha: 0.1),
-                      borderRadius: AppSpacing.borderRadiusFull,
-                      border: Border.all(
-                        color: primaryColor.withValues(alpha: 0.25),
-                        width: 1,
                       ),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          alarm.challengeType.icon,
-                          size: 14,
-                          color: primaryColor,
+                      AppSpacing.gapW12,
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 4,
                         ),
-                        AppSpacing.gapW4,
-                        Text(
-                          alarm.challengeType.displayName,
-                          style: theme.textTheme.labelSmall?.copyWith(
-                            color: primaryColor,
-                            fontWeight: FontWeight.w700,
+                        decoration: BoxDecoration(
+                          color: primaryColor.withValues(alpha: 0.1),
+                          borderRadius: AppSpacing.borderRadiusFull,
+                          border: Border.all(
+                            color: primaryColor.withValues(alpha: 0.25),
+                            width: 1,
                           ),
                         ),
-                      ],
-                    ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              alarm.challengeType.icon,
+                              size: 14,
+                              color: primaryColor,
+                            ),
+                            AppSpacing.gapW4,
+                            Text(
+                              alarm.challengeType.displayName,
+                              style: theme.textTheme.labelSmall?.copyWith(
+                                color: primaryColor,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
             ],
           ),
-        ],
+        ),
       ),
     );
   }
